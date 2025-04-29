@@ -4,21 +4,69 @@
 #   The weight parameter defines the order that the links will appear in.
 
 main:
-  - name: Tour
-    url: tour
-    weight: 10
-  - name: News
-    url: post
+  - identifier: cheatsheets
+    name: 📚 CheatSheets
+    url: '/cheatsheets/'
     weight: 20
-  - name: People
-    url: people
-    weight: 30
-  - name: Events
-    url: event
-    weight: 40
-  - name: Publications
-    url: publication
-    weight: 50
-  - name: Contact
-    url: contact
+  - name: GitHub
+    url: '/cheatsheets/github/'
+    parent: cheatsheets
+    weight: -40
+  - name: Docker
+    url: '/cheatsheets/docker/'
+    parent: cheatsheets
+    weight: -50
+  - name: AWS
+    url: '/cheatsheets/aws/'
+    parent: cheatsheets
     weight: 60
+  - name: Jenkins
+    url: '/cheatsheets/jenkins/'
+    parent: cheatsheets
+    weight: 70
+  - name: SpringBoot
+    url: '/cheatsheets/springboot/'
+    parent: cheatsheets
+    weight: 80
+  - name: VirtualBox
+    url: '/cheatsheets/virtualbox/'
+    parent: cheatsheets
+    weight: 90
+  - name: Vagrant
+    url: '/cheatsheets/vagrant/'
+    parent: cheatsheets
+    weight: 100
+  - name: Kubernetes
+    url: '/cheatsheets/kubernetes/'
+    parent: cheatsheets
+    weight: 110
+  - name: Splunk
+    url: '/cheatsheets/splunk/'
+    parent: cheatsheets
+    weight: 120
+  - name: Serverless
+    url: '/cheatsheets/serverless/'
+    parent: cheatsheets
+    weight: 120
+  - name: OpenAI
+    url: '/cheatsheets/openai/'
+    parent: cheatsheets
+    weight: 130
+  - name: 📐Projects
+    url: '#projects'
+    weight: 30
+  - name: 🤝 HowTo
+    url: '#posts'
+    weight: 40
+  - name: 👦 About
+    url: '#about'
+    weight: 50
+  - name: 📧 Contact
+    url: '#contact'
+    weight: 60
+
+# Link to a PDF of your resume/CV from the menu.
+# To enable, copy your resume/CV to `static/uploads/resume.pdf` and uncomment the lines below.
+#  - name: CV
+#    url: uploads/resume.pdf
+#    weight: 70

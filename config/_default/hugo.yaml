@@ -3,8 +3,30 @@
 # Hugo Documentation: https://gohugo.io/getting-started/configuration/#all-configuration-settings
 # This file is formatted using YAML syntax - learn more at https://learnxinyminutes.com/docs/yaml/
 
-title: Wowchemy Research Group # Website name
-baseURL: 'https://example.com/' # Website URL
+title: Tech Learning Hub # Website name
+baseURL: 'https://tech-learning-hub.com/' # Website URL
+
+############################
+## PAGE OPTIONS
+############################
+
+cascade:
+  # Docs folder options
+  - _target:
+      path: /cheatsheets/**
+    editable: false
+    show_breadcrumb: true
+    commentable: true
+  # Blog post folder options
+  - _target:
+      path: /post/**
+    show_related: true
+    commentable: true
+  # Project folder options
+  - _target:
+      path: /project/**
+    show_related: true
+    commentable: true
 
 ############################
 ## LANGUAGE
@@ -48,6 +70,9 @@ taxonomies:
   author: authors
 markup:
   _merge: deep
+  tableOfContents:
+    startLevel: 2
+    endLevel: 5
 related:
   threshold: 80
   includeNewer: true
@@ -60,4 +85,6 @@ related:
 security:
   _merge: deep
 sitemap:
+  _merge: deep
+minify:
   _merge: deep
