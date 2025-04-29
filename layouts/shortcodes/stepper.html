@@ -1,0 +1,69 @@
+{{/* layouts/shortcodes/stepper.html */}}
+<div class="stepper">
+  <div class="stepper-progress">
+    <div class="stepper-progress-bar" id="progress-bar"></div>
+  </div>
+  <div class="stepper-controls">
+    <button class="btn btn-primary" id="prevBtn" onclick="prevStep()">Previous</button>
+    <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Next</button>
+    <button class="btn btn-success" id="doneBtn" style="display:none;" onclick="done()">Done</button>
+  </div>
+  
+  <div class="stepper-steps">
+    {{ .Inner | markdownify }}
+  </div>
+</div>
+
+<script>
+  var currentStep = 0;
+  showStep(currentStep);
+
+  function showStep(n) {
+    var steps = document.getElementsByClassName("step");
+    var progressBar = document.getElementById("progress-bar");
+    var stepWidth = 100 / steps.length;
+    progressBar.style.width = stepWidth * (n + 1) + "%";
+
+    for (var i = 0; i < steps.length; i++) {
+      steps[i].style.display = "none";
+    }
+    steps[n].style.display = "block";
+
+    // Update visibility of navigation buttons
+    if (n === 0) {
+      document.getElementById("prevBtn").style.display = "none";
+    } else {
+      document.getElementById("prevBtn").style.display = "inline";
+    }
+    if (n === steps.length - 1) {
+      document.getElementById("nextBtn").style.display = "none";
+      document.getElementById("doneBtn").style.display = "inline";
+    } else {
+      document.getElementById("nextBtn").style.display = "inline";
+      document.getElementById("doneBtn").style.display = "none";
+    }
+  }
+
+  function nextStep() {
+    var steps = document.getElementsByClassName("step");
+    if (currentStep < steps.length - 1) {
+      currentStep++;
+      showStep(currentStep);
+    } else {
+      // Hide next button and display done button
+      document.getElementById("nextBtn").style.display = "none";
+      document.getElementById("doneBtn").style.display = "inline";
+    }
+  }
+
+  function prevStep() {
+    if (currentStep > 0) {
+      currentStep--;
+      showStep(currentStep);
+    }
+  }
+
+  function done() {
+    console.log("Stepper completed!");
+  }
+</script>

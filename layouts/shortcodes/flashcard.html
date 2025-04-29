@@ -1,0 +1,14 @@
+{{ $front := .Get "front" | markdownify }}
+{{ $back := .Inner | markdownify }}
+
+<div class="flip-card">
+  <div class="flip-card-inner">
+    <div class="flip-card-front">
+      {{ $front | safeHTML }}
+      <i class="rotate-icon fas fa-sync-alt"></i>
+    </div>
+    <div class="flip-card-back">
+      {{ $back | safeHTML }}
+    </div>
+  </div>
+</div>
