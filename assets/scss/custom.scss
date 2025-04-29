@@ -1,0 +1,408 @@
+$dark-grey: #343434;
+$light-grey: #E3E3E5;
+
+/*************************************************
+ *  Edited icons in featurette widget - default color and hover effects
+ **************************************************/
+
+.featurette-icon:hover {
+  transform: scale(1.2);
+}
+
+/*************************************************
+ *  Customized default color for form control to match website primary color
+ **************************************************/
+
+
+.dark .form-control {
+  color: rgb(248, 248, 242);
+  background-color: $sta-primary;
+  opacity: 0.8;
+
+  &::placeholder {
+    color: #fff;
+  }
+  &:focus {
+    background-color: rgb(68, 71, 90);
+    border-color: $sta-primary;
+    box-shadow: 0 0 0 0.2rem $sta-primary-dark;
+  }
+}
+
+/*************************************************
+ *  Customized card color for form control to match website primary color.
+ **************************************************/
+
+.dark .card {
+  background: $sta-primary;
+  opacity: 0.8;
+}
+
+/*************************************************
+ *  Customized filter_button color to match website primary color
+ **************************************************/
+
+ .btn {
+   border-radius: 5px;
+   margin: 2.5px;
+   padding: .3rem;
+   line-height: 1;
+   -webkit-box-shadow: 3px 3px 0 0 $dark-grey;
+           box-shadow: 3px 3px 0 0 $dark-grey;
+   color: $dark-grey;
+   border-color: $sta-primary-dark;
+   background-color: white !important;
+   -webkit-box-pack: center;
+       -ms-flex-pack: center;
+           justify-content: center;
+
+     &:focus {
+     -webkit-box-shadow: 3px 3px 0 0 white !important;
+             box-shadow: 3px 3px 0 0 white !important;
+     color: $sta-primary-dark;
+     }
+
+   &:hover {
+     background-color: $light-grey !important;
+     color: $sta-primary-dark;
+     }
+ }
+
+ .btn-toolbar .btn.active  {
+   background-color: $sta-primary-dark !important;
+   -webkit-box-shadow: 3px 3px 0 0 white !important;
+           box-shadow: 3px 3px 0 0 white !important;
+ }
+
+ .btn-links .btn {
+   padding: .3rem;
+ }
+
+ .btn-links .btn:hover {
+   padding: .3rem;
+   color: $sta-primary-dark;
+   border-color: $sta-primary-dark;
+   background-color: $dark-grey !important;
+ }
+
+
+/*************************************************
+ *  Edited svg icon looks
+ **************************************************/
+
+img.emoji {
+  height: 1em;
+  width: 1em;
+  margin: 0 .05em 0 .1em;
+  vertical-align: -0.1em;
+  display: inline-flex;
+}
+
+img.icon {
+  height: 1em;
+  margin: 0 .05em 0 .1em;
+  vertical-align: -0.1em;
+  display: inline-flex;
+}
+
+.svg-icon {
+  height: 1em;
+  width: 1em;
+}
+
+p svg {
+  display: inline-flex;
+  align-self: center;
+  height: 1em;
+  width: 1em;
+  margin: 0 .05em 0 .1em;
+  vertical-align: -0.1em;
+}
+
+/*************************************************
+ *   Callout styles for the Callout shortcode
+ **************************************************/
+
+ /* Style asides as Bootstrap alerts. */
+ .article-style aside {
+   @extend .alert;
+ }
+
+ /* Asides use <p> block element whereas alerts use <div>. */
+ .article-style aside p,
+ div.alert > div {
+   position: relative;
+   display: block;
+   font-size: 1rem;
+   margin-left: 2rem;
+   margin-top: 0;
+   margin-bottom: 0;
+ }
+
+ div.alert div > * {
+   margin-bottom: 0.5rem; /* Use smaller paragraph spacing than usual. */
+ }
+
+ div.alert div > :last-child {
+   margin-bottom: 0;
+ }
+
+ .article-style aside p::before,
+ div.alert > div:first-child::before {
+   position: absolute;
+   top: -0.5rem;
+   left: -2rem;
+   font-size: 1.5rem;
+   color: #1976d2;
+   font-family: 'Font Awesome 5 Free';
+   font-weight: 900;
+   content: '\f05a';
+   width: 1.5rem;
+   text-align: center;
+ }
+
+ div.alert-warning > div:first-child::before {
+   font-family: 'Font Awesome 5 Free';
+   font-weight: 900;
+   color: #ff3860;
+   content: '\f071';
+ }
+
+ .article-style aside a,
+ div.alert a {
+   color: currentColor;
+   text-decoration: none;
+   border-bottom: solid 1px currentColor;
+ }
+
+ .article-style aside,
+ .alert-note {
+   color: #12537e;
+   background-color: #f6fbfe;
+   border-color: #1976d2;
+ }
+
+ .alert-warning {
+   color: #cd0930;
+   background-color: #fff5f7;
+   border-color: #ff3860;
+ }
+
+div.alert-example > div:first-child::before {
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  color: $primary;
+  content: '\f0eb';
+}
+
+.alert-example {
+  color: #12537e;
+  background-color: #f6fbfe;
+  border-color: #1976d2;
+}
+
+div.alert-game > div:first-child::before {
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  color: $primary;
+  content: '\f12e';
+}
+
+.alert-game {
+  color: #12537e;
+  background-color: #f6fbfe;
+  border-color: #1976d2;
+}
+
+
+div.alert-thanks > div:first-child::before {
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  color: $primary;
+  content: '🙏';
+}
+
+.alert-thanks {
+  color: #12537e;
+  background-color: #f6fbfe;
+  border-color: #1976d2;
+}
+
+div.alert-soon > div:first-child::before {
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  color: $primary;
+  content: '🔜';
+}
+
+.alert-soon {
+  color: #12537e;
+  background-color: #f6fbfe;
+  border-color: #1976d2;
+}
+
+div.alert-question > div:first-child::before {
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  color: #304f35;
+  content: '❓';
+}
+
+.alert-question {
+  color: #000000DE;
+  background-color: #64dd171A;
+  border-color: #304f35;
+}
+
+div.alert-construction > div:first-child::before {
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  color: $primary;
+  content: '🚧';
+}
+
+.alert-construction {
+  color: #12537e;
+  background-color: #f6fbfe;
+  border-color: #1976d2;
+}
+
+.alignleft {
+  max-width: 45%;
+  float: left;
+}
+
+.alignright {
+  max-width: 45%;
+  float: right;
+}
+
+// nav-tabs and tab-content
+.nav-tabs {
+  border-bottom: none !important;
+
+  .nav-item {
+    margin-bottom: 0;
+  }
+}
+
+.td-content .tab-content .highlight {
+  margin: 0;
+}
+
+//Table Content
+.tab-content table{
+  border-collapse: separate;
+  border-spacing: 6px;
+}
+
+.tab-pane {
+  border-radius: 0.25rem;
+  padding: 0 16px 16px;
+  overflow: auto;
+
+  border: 1px solid #dee2e6;
+  &:first-of-type.active {
+    border-top-left-radius: 0;
+  }
+}
+
+.flashcard-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+}
+
+.flip-card {
+  background-color: transparent;
+  width: 200px;
+  height: 200px;
+  perspective: 1000px;
+  border: 0px solid #5C4033; /* Add border color */
+  border-radius: 5px;
+  margin: 10px; /* Adjust margin as needed */
+  box-shadow: 2px 2px 2px rgba(92, 64, 51, 1); /* Add shadow */
+}
+
+.flip-card-inner {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  backface-visibility: hidden;
+  border: 2px solid #5C4033; /* Add border color */
+}
+
+.flip-card-front {
+  background-color: white;
+  color: black;
+}
+
+.flip-card-back {
+  background-color: white;
+  color: black;
+  transform: rotateY(180deg);
+}
+
+.flip-card-front .rotate-icon {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  cursor: pointer;
+}
+
+/* Add this CSS to your stylesheet */
+
+.stepper {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.stepper-progress {
+  position: relative;
+  height: 10px;
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.stepper-progress-bar {
+  height: 100%;
+  background-color: #5C4033;
+  border-radius: 5px;
+  transition: width 0.3s ease;
+}
+
+.stepper-steps {
+  margin-bottom: 20px;
+}
+
+.step {
+  display: none;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.step.active {
+  display: block;
+}
+
