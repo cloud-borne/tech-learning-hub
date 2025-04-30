@@ -1,4 +1,4 @@
-[![Netlify Status](https://api.netlify.com/api/v1/badges/ef424903-968f-4cf3-9076-9912066c7ed4/deploy-status)](https://app.netlify.com/sites/cloud-native-wiki/deploys)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/2a47d4ec-90ed-4b78-944d-71169283c920/deploy-status)](https://app.netlify.com/sites/tech-learning-hub/deploys)
 
 ### [tech-learning-hub.com](https://www.tech-learning-hub.com/)
 
