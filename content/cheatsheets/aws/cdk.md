@@ -108,6 +108,8 @@ cdk synth
 
 Deploying AWS CDK applications into your AWS account might require that you provision resources the AWS CDK needs to perform the deployment. 
 
+If we don’t bootstrap our AWS environment and, for example, try to deploy a 100 kilobyte AWS CloudFormation template, the deployment will fail. To avoid such scenarios and to complete all possible setup steps at least once, we’re going to bootstrap our AWS environment.
+
 These resources include an **S3** bucket for storing large Lambda functions or other necessary assets and **IAM** roles that grant permissions necessary to perform deployments.
 
 The process of provisioning these initial resources is called ```bootstrapping```. 
