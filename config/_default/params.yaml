@@ -21,7 +21,7 @@ marketing:
     description: 'Hugo based static site for Tech Learning'
     twitter: 'avijit_tweeter'
   analytics:
-    google_analytics: ''
+    google_analytics: 'G-S79XD71FNK'
     baidu_tongji: ''
     google_tag_manager: ''
     microsoft_clarity: ''
