@@ -58,43 +58,54 @@ npm install -g aws-cdk             # install latest version
 npm install -g aws-cdk@X.YY.Z      # install specific version
 ```      
 
+## Documentation
+[AWS-CDK](https://docs.aws.amazon.com/cdk/api/v2/) Reference is a wealth of knowledge and something you should refer to often. Open it like so:
+
+```bash
+cdk docs
+```
 
 ## Creating the CDK App
 
+Create an empty directory on your system:
 ```
-cdk init app --language=typescript
+mkdir todo-app-cdk-ts && cd todo-app-cdk-ts
+```
+We will use ```cdk init``` to create a new TypeScript CDK project:
+```
+cdk init sample-app --language=typescript
 ```
 If we look👀 in the generated code we find these 2 classes:
-- **cdk-workshop.ts**
+- **bin/todo-app-cdk-ts.ts**
+
 ```js
 #!/usr/bin/env node
-import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { CdkWorkshopStack } from '../lib/cdk-workshop-stack';
+import { TodoAppCdkTsStack } from '../lib/todo-app-cdk-ts-stack';
 
 const app = new cdk.App();
-new CdkWorkshopStack(app, 'CdkWorkshopStack', {
-});
+new TodoAppCdkTsStack(app, 'TodoAppCdkTsStack');
 ```
-- **cdk-workshop-stack.ts**
-```js
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+- **lib/todo-app-cdk-ts-stack.ts**
 
-export class CdkWorkshopStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+```js
+import { Duration, Stack, StackProps } from 'aws-cdk-lib';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as subs from 'aws-cdk-lib/aws-sns-subscriptions';
+import { Construct } from 'constructs';
+
+export class TodoAppCdkTsStack extends Stack {
+  constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-    // The code that defines your stack goes here
-    const vpc = new ec2.Vpc(this, "MyVPC", {maxAzs: 2});
-  }
+  // The code that defines your stack goes here
+  const vpc = new ec2.Vpc(this, "MyVPC", {maxAzs: 2}); 
 }
 ```
 
 That’s all the code we need for a working CDK app! That **one line of code** generates the Whole Shebang! i.e VPC, Subnets, Route Tables, Routes, Internet Gateway...🤯
 
-```cdk-workshop.ts``` is the main class of the app. It creates an App
-instance and a ```CdkWorkshopStack``` instance where we define our CloudFormation resources.
+```todo-app-cdk-ts.ts``` is the main class of the app. It creates an App
+instance and a ```todo-app-cdk-ts-stack.ts``` instance where we define our CloudFormation resources.
 
 ###### Synthesize the CDK App
 
@@ -239,6 +250,67 @@ new CdkWorkshopStack(app, 'CdkWorkshopStack', {
 
 You typically define an App instance in your program's entry point, and then define constructs where the app is used as the parent scope. You are able to use the App instance for defining a single instance of your stack.
 
+## Stack Communication
+
+There are several strategies we can use based on the use cases. 
+
+- **Property Parameters**:
+  - <u>Use Case</u>
+
+    When you have a ```parent``` stack and one or more ```child``` stacks that need to share specific configuration values, property parameters are ideal. A NetworkStack defining a VPC and passing the ```VPC ID``` and ```subnets``` to an ApplicationStack that needs to launch resources in that VPC.
+  
+  - <u>Steps</u>
+    1. Define parameter in stack code
+    ![CDK Params](/images/uploads/property-params-1.png)
+    2. Define parameter in dependent stack code as part of constructor
+    ![CDK Params](/images/uploads/property-params-2.png)
+    3. Reference parameter in app definition
+    ![CDK Params](/images/uploads/property-params-3.png)
+
+{{% callout note %}}
+You could also pull in entire stacks this way, if the sheer number of params that needs to be passed makes the code messy.
+```ts
+const orderUpLambdaStack = new LambdaStack(app, 'OrderUpLambdaStack', orderUpDBStack, { }) ;
+```
+{{% /callout %}}
+
+- **Property Interface**:   
+  - <u>Use Case</u>
+
+    Property interfaces are suitable when you want to define a consistent interface for passing parameters between stacks. This approach is useful when you have multiple stacks with similar configurations or when you want to enforce a **contract** for what properties must be provided. 
+    
+    When building a ```microservices``` architecture, if each service stack requires similar properties like service names, database configurations, etc., you can create an interface to standardize these inputs.
+  
+  - <u>Steps</u>
+    1. Define parameter in stack code
+    ![CDK Params](/images/uploads/property-params-1.png)
+    2. Define parameter in properties interface in the dependent code, reference interface in constructor
+    ![CDK Params](/images/uploads/property-params-4.png)
+    3. When we call the dependent stack we feed in the parameter information like so:
+    ![CDK Params](/images/uploads/property-params-5.png)
+
+- **Context Variables**:
+  - <u>Use Case</u>
+
+    Context variables are useful when you want to pass configuration values at synthesis that might differ between ```environments``` (e.g., dev, staging, production). These values can be defined in the ```cdk.json``` file or passed through CLI, making it easy to customize the deployment without changing the code.
+  
+  - <u>Steps</u>
+    1. Define context variable in app definition
+    ![CDK Params](/images/uploads/context-params-1.png)
+    2. Call variable in dependent stack
+    ![CDK Params](/images/uploads/context-params-2.png)
+
+- **SSM Paramters**:
+  - <u>Use Case</u>
+
+    When you need to manage **secrets** or **configuration** values centrally, AWS Systems Manager (```SSM```) Parameter Store is an ideal choice. This is particularly useful for sensitive information like API keys or database passwords that should not be hardcoded in the code or templates. Only caveat is they have to be *Strings*
+  
+  - <u>Steps</u>
+    1. Define parameter in stack code and save to SSM 
+    ![CDK Params](/images/uploads/ssm-params-1.png)
+    2. Call parameter in dependent stack
+    ![CDK Params](/images/uploads/ssm-params-2.png)
+
 ## Identifiers
 
 AWS CDK uses various types of ```identifiers```. Identifiers must be **unique** within the scope in which they were created. Familiarize yourself with the types of identifiers used:
@@ -252,30 +324,13 @@ The constructs in an AWS CDK application form a hierarchy rooted in the App clas
 - **Logical IDs**: 
 Unique IDs serve as the logical identifiers of resources in the generated AWS CloudFormation templates for those constructs that represent AWS resources. Logical identifiers are sometimes called logical names.
 
-## Environments
-
-Environment (```env```) represents the AWS **Account** and AWS **Region** in which a stack is deployed. AWS CDK selects the **default** Region and account in your current AWS CLI profile. However, you can manually override the environment [using the ```--profile``` option] by specifying a different set of values than the default. 
-
-```js
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
-
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
-
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
-```
-Constructs deploying with environments using AWS CDK CLI environment variables are considered environment-agnostic and any constructs defined in such a stack cannot use any information about their environment. 
-
-For example, you cannot write code to validate Region because you will not be able to check for a specific Region in the construct itself. These features do not work at all without an explicit environment specified. To use them, you must specify env.
-
 ## Context
 
-```Context``` values are **key-value** pairs that can be associated with a stack or construct. AWS CDK uses context to **cache** information from your AWS account, such as the **Availability Zones** in your account or the Amazon Machine Image (**AMI**) IDs used to start your instances. Because these values are provided by your AWS account, they can change between runs of your CDK application. This makes them a potential source of unintended change. The CDK Toolkit's caching behavior "freezes" these values for your CDK app until you decide to accept the new values. You can also create your own context values that your apps or constructs can use. 
+```Context``` values are **key-value** pairs that can be associated with an ```App```, ```Stack``` or ```Construct```. These values are retrieved during **synthesis** and could be used in the CDK code. CDK looks for the ```Context``` information in the following locations:
+
+![CDK Context](/images/uploads/aws-cdk-context-locations.png)
+
+AWS CDK uses ```Context``` to **cache** information from your AWS account, such as the **Availability Zones** in your account or the Amazon Machine Image (**AMI**) IDs used to start your instances. Because these values are provided by your AWS account, they can change between runs of your CDK application. This makes them a potential source of unintended change. The CDK Toolkit's caching behavior "freezes" these values for your CDK app until you decide to accept the new values. You can also create your own context values that your apps or constructs can use. 
 
 Context values that you create are **scoped** to the construct that created them, meaning they are visible to child constructs but not to siblings. Context values set by the AWS CDK Toolkit are set on the **App** construct, and so they are visible to every construct in the app.
 
@@ -289,11 +344,323 @@ The resulting information is also visible in various locations, including the ``
 
 Imagine the following scenario without context caching. Let's say you specified "latest Amazon Linux" as the AMI for your Amazon EC2 instances, and a new version of this AMI was released. Then, the next time you deployed your CDK stack, your already-deployed instances would be using the outdated ("wrong") AMI and would need to be upgraded. Upgrading would result in replacing all your existing instances with new ones, which would probably be unexpected and undesired.
 
-{{% callout warning %}}
+{{% callout note %}}
 
 Because they're part of your application's state, **cdk.json** must be committed to source control along with the rest of your app's source code. Otherwise, deployments in other environments (for example, a CI pipeline) might produce inconsistent results.
 
 {{% /callout %}}
+
+## Context Methods
+
+Some CDK context values can be dynamically determined from the contextual information in any AWS environment. This is done using Context methods.
+
+* **HostedZone.fromLookup()**:
+
+  * ```HostedZone.fromLookup()``` is a ```static``` method that imports an existing Route 53 Hosted Zone by querying your AWS account.
+  * It requires at least the domainName property to identify the hosted zone.
+  * The CDK performs a context lookup during **synthesis** — it fetches the hosted zone ID and other details for you.
+  * This allows you to reference and add A records to an existing hosted zone without hardcoding IDs.
+
+  ```ts
+    // Lookup existing Hosted Zone by domain name
+    const zone = HostedZone.fromLookup(this, 'MyHostedZone', {
+      domainName: 'example.com',
+    });
+
+    // Create or import a VPC (here we create a default one)
+    const vpc = new Vpc(this, 'MyVpc');
+
+    // Create an EC2 instance
+    const instance = new Instance(this, 'MyInstance', {
+      vpc,
+      instanceType: new InstanceType('t3.micro'),
+      machineImage: MachineImage.latestAmazonLinux(),
+    });
+
+    // Create an A record pointing to the EC2 instance
+    new ARecord(this, 'InstanceARecord', {
+      zone,
+      recordName: 'app.example.com', // Subdomain you want to use
+      target: RecordTarget.fromAlias(new InstanceTarget(instance)),
+    });
+
+  ```
+
+* **stack.availabilityZones**
+
+  * ```stack.availabilityZones``` returns a string array of AZ names (e.g. ['us-east-1a', 'us-east-1b', 'us-east-1c']) for the region the stack is targeting.
+  * You can use it to distribute resources (like subnets, instances) across different AZs for high availability.
+
+  ```ts
+    const azs = stack.availabilityZones;
+
+    const vpc = new ec2. Vpc(this, 'VPC', {
+    maxAzs: stack.availabilityZones.length,
+    });
+  ```
+
+* **StringParameter.valueFromLookup()**
+
+  * ```StringParameter.valueFromLookup()``` allows you to import the value of an existing SSM Parameter Store string parameter at **synthesis** time.
+  * This means CDK fetches the value when you run ```cdk synth``` or ```cdk deploy```, and embeds it as a literal value in the CloudFormation template.
+  * The method takes two arguments:
+    * The CDK scope (```this```)
+    * The parameter name (e.g., ```/my/parameter/name```)
+
+  ```ts
+  // Lookup the DB password stored in SSM Parameter Store at synthesis time
+  // Assuming password is stored under '/myapp/prod/db-password'
+  const dbPassword = StringParameter.valueFromLookup(this, '/myapp/prod/db-password');
+
+  // Create the PostgreSQL RDS instance
+    new DatabaseInstance(this, 'PostgresInstance', {
+      engine: DatabaseInstanceEngine.postgres({ version: PostgresEngineVersion.VER_14 }),
+      vpc,
+      vpcSubnets: {
+        subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      credentials: {
+        username: 'postgres',                                  // fixed username or from config
+        password: cdk.SecretValue.unsafePlainText(dbPassword), // use the looked-up password
+      },
+      ...
+    });
+
+  ```
+
+{{% callout note %}}
+For this lookup to succeed, your AWS credentials must have **permission** to read the SSM parameter, and the parameter must exist in the AWS account and region of your stack's environment.
+{{% /callout %}}
+
+* **StringParameter.valueForStringParameter()**
+
+  * ```StringParameter.valueForStringParameter()``` imports the parameter dynamically at **deployment** time by referencing it in the CloudFormation template.
+  * Unlike ```valueFromLookup()```, which fetches the parameter value at **synthesis** time, this method generates a CloudFormation **dynamic** reference (like {{```resolve:ssm:/my/parameter/name```}}).
+  * This is more **secure** for secrets or frequently changing parameters because the actual value is fetched only when the stack deploys or updates, not embedded in the synthesized template.
+
+  ```ts
+    // Import SSM Parameter value dynamically at deploy time
+    const dbPassword = StringParameter.valueForStringParameter(this, '/myapp/prod/db-password');
+
+    // Create a Lambda function that receives the password as environment variable
+    const lambdaFn = new Function(this, 'MyFunction', {
+      runtime: Runtime.NODEJS_18_X,
+      handler: 'index.handler',
+      code: Code.fromInline(`
+        exports.handler = async function(event) {
+          console.log("DB Password:", process.env.DB_PASSWORD);
+          return "Done";
+        };
+      `),
+      environment: {
+        DB_PASSWORD: dbPassword, // dynamically resolved at deploy time
+      },
+    });
+  ```
+
+* **Vpc.fromLookup()**
+
+  * ```Vpc.fromLookup()``` lets you import an existing VPC into your CDK stack by:
+    * Providing the VPC ID directly (vpcId), or
+    * Searching by ```tags```, or other filters (e.g., ```isDefault```).
+  * CDK performs a context lookup during **synthesis** to fetch the VPC configuration.
+  * This imported VPC is a reference — you cannot modify it, but you can use it to launch resources inside it.
+
+
+  ```ts
+  // Look up an existing VPC by its ID or tags
+    const vpc = Vpc.fromLookup(this, 'ExistingVPC', {
+      // Option 1: Specify the VPC ID directly
+      vpcId: 'vpc-0abc123def456ghij',
+
+      // Option 2: Or find by tags (uncomment this and comment vpcId if you prefer)
+      // tags: {
+      //   'Environment': 'production',
+      // },
+    });
+
+    // Now you can use the imported VPC in your constructs, e.g., create an ECS cluster
+    // new ecs.Cluster(this, 'EcsCluster', { vpc });
+  ```
+
+{{% callout note %}}  
+* Make sure your AWS credentials have permission to describe VPCs, and that the VPC exists in the stack’s AWS account and region.
+* Running ```cdk synth``` or ```cdk deploy``` will cache the lookup result in ```cdk.context.json``` for faster subsequent syntheses. If the VPC changes or you want to refresh, use ```cdk context --clear``` or manually edit the context file.
+{{% /callout %}}
+
+* **MachineImage.lookup()**
+
+  * ```MachineImage.lookup()``` performs a context-aware lookup to find the most recent AMI that matches given criteria.
+  * You specify filters such as name patterns, owners, and additional filters to narrow down the AMI.
+  * CDK queries AWS during synthesis and caches the result in ```cdk.context.json```.
+  * This approach ensures you get the latest compatible AMI without hardcoding AMI IDs that vary per region and over time.
+
+  ```ts
+  // Lookup the latest Amazon Linux 2 AMI with specific filters
+    const ami = MachineImage.lookup({
+      name: 'amzn2-ami-hvm-*-x86_64-gp2',  // AMI name pattern
+      owners: ['amazon'],                   // Owner ID (Amazon official)
+      filters: {
+        'architecture': ['x86_64'],
+        'root-device-type': ['ebs'],
+        'virtualization-type': ['hvm'],
+      },
+    });
+
+    // Create an EC2 instance using the looked-up AMI
+    new Instance(this, 'MyInstance', {
+      vpc,
+      instanceType: new InstanceType('t3.micro'),
+      machineImage: ami,
+    });
+  ```
+
+## Environments
+
+When working with AWS CDK, you’ll often hear about *environments* — but what does that really mean? It can get a bit confusing because **"environment"** can refer to two distinct concepts:
+
+1. **AWS Environment (Account & Region)**
+2. **Deployment Environment (Dev, QA, Prod, etc.)**
+
+Let’s break it down!
+
+### AWS Environment
+
+Environment parameter (```env```) represents the AWS **Account** and AWS **Region** in which a stack is deployed. AWS CDK selects the **default** Region and account in your current AWS CLI profile. However, you can manually override the environment [using the ```--profile``` option] by specifying a different set of values than the default. 
+
+```typescript
+const app = new cdk.App();
+
+new MyStack(app, 'MyStack-Dev', {
+  env: { account: '111111111111', region: 'us-west-2' },
+});
+
+new MyStack(app, 'MyStack-Prod', {
+  env: { account: '222222222222', region: 'us-east-1' },
+});
+```
+
+{{% callout note %}}
+
+> Constructs deploying with environments using AWS CDK CLI environment variables are considered environment-agnostic and any constructs defined in such a stack cannot use any information about their environment.
+ 
+When you *don’t* specify the `env` property explicitly in your CDK stack (i.e., you rely on the CDK CLI’s default environment variables like `CDK_DEFAULT_ACCOUNT` and `CDK_DEFAULT_REGION`), your stack is **environment-agnostic**.  
+
+**Environment-agnostic** stacks are flexible and portable — they can theoretically deploy to *any* AWS account or region without being tied down. But because of this flexibility, the CDK **cannot make assumptions or access concrete information** about the deployment environment **at synthesis time**.
+
+Many AWS resources or configurations depend on knowing where (which account/region) they will be deployed. For example:  
+
+- Conditional logic based on the AWS Region  
+- Using region-specific AMIs  
+- Validating that deployment only occurs in allowed regions/accounts
+
+Without an explicit `env` defined, your CDK code **cannot perform these environment-aware checks or customizations**, because CDK synthesizes your stack without concrete account or region info.
+
+---
+```typescript
+class MyStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+    if (this.region === 'us-east-1') {
+      // This won't work if env is not explicitly defined
+      // because `this.region` is undefined or tokens unresolved at synth time.
+      console.log('Deploying to US East 1');
+    }
+  }
+}
+```
+---
+
+{{% /callout %}}
+
+### Deployment Environments
+
+These are logical environments representing stages of your software lifecycle, often with different configurations, feature flags, or scale.
+*i.e* say you want your ```Prod``` DB to have multi-AZ replication vs your ```Dev``` DB which deploys to a single AZ. 
+
+![CDK Deployments](/images/uploads/deployment-envs.png)
+
+* AWS CDK ```context``` is a way to pass environment-specific configuration values to your CDK app, which can be accessed during **synthesis**. This allows you to dynamically configure your stacks based on the environment (e.g., ```dev```, ```test```, ```prod```) without hardcoding values.
+* Use Parameter Store / Secrets Manager + Lookup in CDK
+* Leverage CDK Pipelines or CI/CD tooling (e.g., ```CodePipeline```, ```GitHub Actions```) to inject environment variables, config files, or context into CDK synth/deploy.
+
+**Steps:**
+
+1. Define environment-specific values in ```cdk.context.json``` or any of the other places where you could defined ```context``` as mentioned [earlier](#context)
+      ```json
+        {
+          "context": {
+            "envs": {
+              "dev": {
+                "stageName": "dev",
+                "instanceType": "t3.micro",
+                "dbName": "devdb"
+              },
+              "test": {
+                "stageName": "test",
+                "instanceType": "t3.small",
+                "dbName": "testdb"
+              },
+              "prod": {
+                "stageName": "prod",
+                "instanceType": "t3.large",
+                "dbName": "proddb"
+              }
+            }
+          }
+        }
+      ```
+
+  2. ```bin/app.ts``` — read AWS account and region from environment or CLI params and only use ```context``` for config
+
+      ```ts
+        ...
+        const app = new cdk.App();
+
+        const env = {
+          account: process.env.CDK_DEFAULT_ACCOUNT || '891377100138',
+          region: process.env.CDK_DEFAULT_REGION || 'us-east-1',
+        };
+
+        const stageName = app.node.tryGetContext('stageName') || 'dev';
+        const envConfig = app.node.tryGetContext('environments')?.[stageName];
+
+        const taskVpc = new VpcStack(app, `TaskVPC-${envConfig.stageName}`, {
+          env,
+          stageName: envConfig.stageName,
+          maxAzs: envConfig.maxAzs,
+        });
+
+        const taskDb = new DatabaseStack(app, `TaskDB-${envConfig.stageName}`, {
+          env,
+          stageName: envConfig.stageName,
+        });
+
+        new ApiStack(app, `TaskAPI-${envConfig.stageName}`, {
+          env,
+          stageName: envConfig.stageName,
+          table: taskDb.table,
+        });
+      ```
+
+3. Deploy commands - You can specify the AWS profile, account, and region by setting environment variables or using CLI parameters
+
+    ```ts
+    # Using AWS profile
+    export AWS_PROFILE=dev-profile
+    cdk deploy -c env=dev
+
+    # Or specify region inline
+    AWS_PROFILE=test-profile AWS_REGION=us-west-2 cdk deploy -c env=test
+
+    # Or export both account & region explicitly (used by CDK)
+    export CDK_DEFAULT_ACCOUNT=111111111111
+    export CDK_DEFAULT_REGION=us-west-2
+    cdk deploy -c env=dev
+
+    ```
+
 
 ## Assets
 
