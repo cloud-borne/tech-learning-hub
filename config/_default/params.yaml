@@ -81,17 +81,22 @@ features:
     gravatar: false
     shape: circle
   comment:
-    provider: 'giscus'
+    provider: 
     disqus:
       shortname: ''
       show_count: true
     commento:
       url: ''
     giscus:
-      repo: ''
-      repo_id: ''
-      category: ''
-      category_id: ''
+      repo: 'cloud-borne/tech-learning-hub'
+      repo_id: 'R_kgDOOhXBQg'
+      category: 'Announcements'
+      category_id: 'DIC_kwDOOhXBQs4Ctnnu'
+      theme: "catppuccin_latte"
+      reactions-enabled: "1"
+      input-position: "top"
+      language_code: en
+      mapping: "pathname"
   search:
     provider: wowchemy
     algolia:
