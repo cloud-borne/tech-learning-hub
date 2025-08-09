@@ -428,6 +428,10 @@ aws ssm get-parameters-by-path --path /my-app/dev/
 aws ssm get-parameters-by-path --path /my-app/ --recursive
 ## GET PARAMETERS BY PATH WITH DECRYPTION
 aws ssm get-parameters-by-path --path /my-app/ --recursive --with-decryption
+## PUT PARAMETERS BY NAME
+aws ssm put-parameter  --name "/dev/order-service/rds/username"  --type "String"  --value "orders_user"
+aws ssm put-parameter  --name "/dev/order-service/s3/bucket"  --type "String"  --value "orders-service-dev-bucket"
+aws ssm put-parameter  --name "/dev/order-service/feature/new-checkout"  --type "String"  --value "false"
 ```
 
 {{% callout note %}}
