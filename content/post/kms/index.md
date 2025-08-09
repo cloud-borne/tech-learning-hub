@@ -9,18 +9,18 @@ summary: Work with Customer Managed Keys in KMS
 projects: []
 
 # Date published
-date: "2025-08-16T00:00:00Z"
+date: "2025-07-16T00:00:00Z"
 
 toc: true
 
 # Date updated
-lastmod: "2025-08-16T00:00:00Z"
+lastmod: "2025-07-16T00:00:00Z"
 
 # Is this an unpublished draft?
 draft: false
 
 # Show this page in the Featured widget?
-featured: false
+featured: true
 
 # Featured image
 # Place an image named `featured.jpg/png` in this page's folder and customize its options here.
@@ -44,4 +44,8 @@ categories:
 <!--more-->
 
 ### Overview
+
+{{% callout soon %}}
+Coming soon...
+{{% /callout %}}
 
