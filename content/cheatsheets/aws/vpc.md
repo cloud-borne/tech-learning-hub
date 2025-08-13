@@ -73,6 +73,8 @@ Subnets allow you to partition your network inside your VPC (Availability Zone r
  * Internet Gateways helps our VPC instances connect with the internet
  * Public Subnets have a route to the internet gateway
 
+## NAT Instances 
+
 ## NAT Gateway
 
  * NAT Gateways (AWS-managed) & NAT Instances (self-managed) allow your instances in your Private Subnets 
@@ -232,6 +234,18 @@ S3 is accessible with both ```Gateway Endpoints``` and ```Interface Endpoints```
 With VPC Endpoints you do need to allow VPC ```DNS HostName``` resolution, otherwise this solution won't work.
 {{% /callout %}}
 
+
+## VPC Peering
+
+## VPC Flow Logs
+
+## Site to Site VPN
+
+## Direct Connect 
+
+## Direct Connect Gateway
+
+## Transit Gateway
 
 
 

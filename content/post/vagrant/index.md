@@ -47,16 +47,14 @@ categories:
 
 ### Overview
 
-As part of my upcoming HowTo tutorials on my blog, I will need to install CentOS 8 on a virtualbox using vagrant. My goal would be to assign a static IP for these machines and use them as Docker hosts.
+As part of my upcoming "HowTo" tutorials on my blog, I will need to install different Linux distros like CentOS, Ubuntu... on a Windows machine. My goal would be to assign a static IP for these machines and use them as ```Docker``` hosts.
 
-And one of the best ways to do that is via a tool called Vagrant, and that's what I'll be showing here.  
-You can find the different Linux distros via [Vagrant Cloud](https://app.vagrantup.com/boxes/search). And we use them to spin up VMs and tear them down once done very quickly.
+And one of the best ways to do that is via a tool called [Vagrant](https://developer.hashicorp.com/vagrant), and that's what I'll be showing here. You can find the different Linux distros via [Vagrant Cloud](https://app.vagrantup.com/boxes/search). And we use them to spin up VMs and tear them down once done very quickly.
 
-Vagrant works with different hypervisor providers like VirtualBox, Docker, Hyper-V, VMware. We will be using VirtualBox here which is a free, open source cross platform hypervisor software.
+```Vagrant``` works with different hypervisor providers like ```VirtualBox```, ```Docker```, ```Hyper-V```, ```VMware```. We will be using ```VirtualBox``` here which is a free, open source cross platform hypervisor software.
 
 In a previous article I showed how to [Install of CentOS 7.0 with VirtualBox]({{< ref "/post/centos/index.md" >}} "Centos 7").
-In this article I want to script/automate all the clicking around in VirtualBox, check them into version control, and keep a nice history of them.
-Vagrant is just automating the process of creating a VM inside of VirtualBox.
+In this article I want to script/automate all the clicking around in ```VirtualBox```, check them into version control, and keep a nice history of them. Vagrant is just automating the process of creating a VM inside of VirtualBox.
 
 ### Get Started
 
