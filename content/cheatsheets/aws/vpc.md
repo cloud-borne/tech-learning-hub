@@ -40,6 +40,26 @@ Within a Amazon Virtual Private Cloud (Amazon VPC), you can launch AWS resources
 * They’re separate from each other, so that they’re isolated from disasters
 * They’re connected with high bandwidth, ultra-low latency networking
 
+{{% callout note %}}
+
+> Availability Zones (```AZs```) Aren’t **Globally** Consistent Across Accounts
+
+AZ Names Are Mapped Per Account:
+- AWS uses logical names like ```us-west-2a```, ```us-west-2b```, etc. for Availability Zones.
+- These names are not globally fixed — they’re mapped differently for each AWS account.
+- So, us-west-2a in Account A might physically correspond to a different data center than us-west-2a in Account B
+
+🧠 Why AWS Does This?
+- Load balancing & fault isolation: AWS spreads customers across ```AZs``` to avoid overloading any single data center.
+- Security & abstraction: It prevents users from inferring physical infrastructure layout.
+- Flexibility: AWS can reassign logical AZ names without disrupting customer configurations.
+
+Even though both accounts use us-west-2a, they’re actually pointing to different physical zones.
+
+{{< figure src="/images/uploads/vpc-az-id.png" width="300" height="300">}}
+
+{{% /callout %}}
+
 ## Edge Locations
 
  * Amazon has 400+ Points of Presence (400+ Edge Locations & 10+ Regional Caches) in 90+ cities across 40+ countries
@@ -53,6 +73,37 @@ Here's how to create a VPC that you can use for a two-tier architecture in a pro
 
 ![AWS-VPC](/images/uploads/vpc-network.png)
 
+## IPv4 and IPv6
+
+```IPv4``` and ```IPv6``` are the two primary versions of the Internet Protocol used to identify devices on a network. AWS supports both IPv4 and IPv6, but **IPv4 cannot be disabled for a VPC**, ensuring compatibility with existing infrastructure.
+
+###### IPv4
+
+- **IPv4** is widely used to identify devices on a network using numerical addresses.
+- **Address Space**: IPv4 provides about `4.3 billion` unique addresses (`2^32`), which are rapidly being exhausted.
+- **Format**: IPv4 addresses are written in dotted decimal notation — four octets separated by dots (e.g., `192.168.0.1`).
+- **Address Types**: Includes **public**, **private**, **loopback**, and **broadcast** addresses. Private ranges include `10.0.0.0/8`, `172.16.0.0/12`, and `192.168.0.0/16`.
+- **Subnetting**: CIDR notation (e.g., `/24`) is used to define network boundaries and calculate usable host addresses.
+
+###### IPv6
+
+- **IPv6** is the successor to **IPv4**, designed to overcome address exhaustion and support the growing number of internet-connected devices.
+- **Address Space**: IPv6 provides approximately `3.4 × 10^38` unique IP addresses — enough to assign trillions per person on Earth.
+- **Format**: An IPv6 address consists of 8 groups of 4 hexadecimal digits, separated by colons (e.g., `2001:db8:3333:4444:5555:6666:7777:8888`).
+- **Zero Compression**: Consecutive groups of zeros can be compressed using `::` (e.g., `2001:db8::1234:5678`).
+- **AWS Note**: All IPv6 addresses in AWS are **public and Internet-routable** — there are no private IPv6 ranges like in IPv4.
+
+## CIDR Blocks
+
+- <span style="color:red">C</span>lassless <span style="color:red">I</span>nter-<span style="color:red">D</span>omain <span style="color:red">R</span>outing – a method for allocating IP addresses used in Security Groups rules and AWS networking in general
+- **Formula**: The number of IP addresses in a CIDR block is `2^(32 - prefix length)` for IPv4.
+- **Prefix Length**: CIDR notation (e.g., `/26`) specifies how many bits are reserved for the network. The rest are for host addresses.
+- **Usable Hosts**: Subtract 2 from the total to account for the **network address** and **broadcast address**, which are not assignable.
+- **Example**: 
+  - For `10.0.0.0/26`, `2^6 = 64` total IPs → **62 usable** host addresses.
+  - WW.XX.YY.ZZ/32 => one IP
+  - 0.0.0.0/0 => all IPs
+ 
 ## Subnets
 
 Subnets allow you to partition your network inside your VPC (Availability Zone resource)
@@ -229,13 +280,43 @@ S3 is accessible with both ```Gateway Endpoints``` and ```Interface Endpoints```
 | Free                                          | Billed per hour                                            |
 
 
-
 {{% callout note %}}
 With VPC Endpoints you do need to allow VPC ```DNS HostName``` resolution, otherwise this solution won't work.
 {{% /callout %}}
 
 
 ## VPC Peering
+
+{{< figure src="/images/uploads/vpc-peering.png" width="500" height="500" class="alignright">}}
+
+- Privately connect two VPCs using AWS’ network
+- Make them behave as if they were in the same network
+- Must not have overlapping CIDRs
+- VPC Peering connection is NOT transitive (must be established for each VPC that need to communicate with one another)
+- You must update route tables in VPC’s subnets each to ensure EC2 instances can communicate with each other
+- You can create VPC Peering connection between VPCs in different AWS accounts/regions
+- You can reference a security group in a peered VPC (works cross accounts – same region)
+
+![VPC Peering SGs](/images/uploads/vpc-peering-sg.png)
+
+{{% callout note %}}
+
+🛠️ Cross-Account VPC Peering
+{{< figure src="/images/uploads/vpc-peering-az-id.png" width="300" height="300">}}
+
+If you need to ensure consistent AZ usage across accounts (e.g., for multi-account VPC peering or DR setups):
+- Use AZ IDs instead of names
+- Run: 
+  ```
+  aws ec2 describe-availability-zones --region us-west-2 --all-availability-zones
+  ```
+- Look for the ZoneId field (e.g., use2-az1, use2-az2)
+- Map AZ names to AZ IDs manually
+- Create a shared mapping table across accounts.
+- Use AZ IDs to align resources (e.g., ensure both accounts use use2-az1).
+
+{{% /callout %}}
+
 
 ## VPC Flow Logs
 
@@ -247,6 +328,9 @@ With VPC Endpoints you do need to allow VPC ```DNS HostName``` resolution, other
 
 ## Transit Gateway
 
+## Futher Read
+
+[AWS Whitepaper - Connectivity models](https://docs.aws.amazon.com/whitepapers/latest/hybrid-connectivity/connectivity-models.html)
 
 
 
