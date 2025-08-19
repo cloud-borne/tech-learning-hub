@@ -126,10 +126,34 @@ Subnets allow you to partition your network inside your VPC (Availability Zone r
 
 ## NAT Instances 
 
+- ```NAT Instance``` (self-managed) provides network address translation (NAT). You can use a NAT instance to allow resources in a private subnet to communicate with destinations outside the virtual private cloud (VPC), such as the internet or an on-premises network. The resources in the private subnet can initiate outbound IPv4 traffic to the internet, but they can't receive inbound traffic initiated on the internet.
+
+{{< figure src="/images/uploads/vpc-nat-instance.png" width="500" height="500" class="alignright">}}
+
+- NAT Instances are just ```EC2``` instances running custom NAT software (often Linux with iptables or nftables), so you can configure them however you like — including static port forwarding rules.
+- Full **OS-Level** Control: You can modify routing tables, firewall rules, and install additional software to handle complex traffic flows.
+- Security Groups: NAT Instances support security groups, allowing fine-grained control over inbound/outbound traffic.
+
 ## NAT Gateway
 
- * NAT Gateways (AWS-managed) & NAT Instances (self-managed) allow your instances in your Private Subnets 
-to access the internet while remaining private
+- ```NAT Gateways``` (AWS-managed) allows your instances in your Private Subnets to access the internet while remaining private
+
+- Public NAT Gateway:
+  - Placed in a public subnet.
+  - Requires an Elastic IP.
+  - Routes traffic to the internet via an Internet Gateway (IGW).
+  - Can also route to other VPCs/on-prem via Transit Gateway or Virtual Private Gateway.
+  ![AWS-VPC-Public-NAT-Gateway](/images/uploads/vpc-public-nat-gateway.png)
+    
+- Private NAT Gateway:
+  - Placed in a private subnet.
+  - No ```Elastic IP```.
+  - Routes only to other VPCs/on-prem via Transit Gateway or Virtual Private Gateway.
+  - Cannot route to the internet — IGW drops such traffic.
+  ![AWS-VPC-Private-NAT-Gateway](/images/uploads/vpc-private-nat-allowed-range.png)
+
+> 🧠 Think of a ```NAT Instance``` like a *DIY* router — you can tinker with its internals.
+A ```NAT Gateway``` is more like a *sealed* appliance — optimized for speed and reliability, but not customizable.
 
 ## Network Access Control List (NACL)
 
@@ -330,8 +354,9 @@ If you need to ensure consistent AZ usage across accounts (e.g., for multi-accou
 
 ## Futher Read
 
-[AWS Whitepaper - Connectivity models](https://docs.aws.amazon.com/whitepapers/latest/hybrid-connectivity/connectivity-models.html)
-
+- [AWS Whitepaper - Connectivity models](https://docs.aws.amazon.com/whitepapers/latest/hybrid-connectivity/connectivity-models.html)
+- [How NAT Gateway works](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html)
+- [How NAT Instance works](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_NAT_Instance.html)
 
 
 

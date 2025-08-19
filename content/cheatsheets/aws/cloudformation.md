@@ -812,5 +812,11 @@ Resources:
 
 ### StackSets
 
+AWS CloudFormation ```StackSet``` extends the functionality of stacks by enabling you to create, update, or delete stacks across multiple accounts and regions with a single operation. A stack set lets you create stacks in AWS accounts across regions by using a single AWS CloudFormation template. Using an administrator account of an ```AWS Organization```, you define and manage an AWS CloudFormation template, and use the template as the basis for provisioning stacks into selected target accounts across specified regions.
+
+A StackSet is a ```regional``` resource. If you create a StackSet in one AWS Region, you can only see or change it when viewing that Region.
+
+![CloudFormation-StackSet](/images/uploads/cloudformation-stackset.png)
+
 
 
