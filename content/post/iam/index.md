@@ -1,26 +1,26 @@
 ---
-title: Hybrid DNS between AWS and On-Premises
-subtitle: Hybrid DNS
+title:  S3 Cross Account Access
+subtitle: Guide to Share S3 Bucket🪣 Cross Account
 
 # Summary for listings and search engines
-summary: Work with Route53 DNS Resolvers
+summary: Guide to Share S3 Bucket🪣 Cross Account
 
 # Link this post with a project
 projects: []
 
 # Date published
-date: "2025-07-16T00:00:00Z"
+date: "2025-09-11T00:00:00Z"
 
 toc: true
 
 # Date updated
-lastmod: "2025-07-16T00:00:00Z"
+lastmod: "2025-09-11T00:00:00Z"
 
 # Is this an unpublished draft?
 draft: true
 
 # Show this page in the Featured widget?
-featured: true
+featured: false
 
 # Featured image
 # Place an image named `featured.jpg/png` in this page's folder and customize its options here.
@@ -34,8 +34,9 @@ authors:
 - admin
 
 tags:
+- IAM
+- S3
 - AWS
-
 
 categories:
 
@@ -44,8 +45,3 @@ categories:
 <!--more-->
 
 ### Overview
-
-{{% callout soon %}}
-Coming soon...
-{{% /callout %}}
-

@@ -533,6 +533,18 @@ jobs:
         run: echo "${CONTEXT_ITEM}"
 ```
 
+## Concurrency
+
+TL'DR:
+
+Say we are trying to do a build and deploy with every commit and we push two or more commits to the code repository within a quick sequence of time frame?  Both commits will trigger the GitHub Actions workflow and successfully run the “Build” and “Publish” steps. But the workflow run that was triggered second will fail in the “Deploy” step because CDK/CloudFormation will detect that another deployment is currently in progress. The second workflow run will have to be manually triggered again once the deployment has finished. A lot of workflow runs will fail and there is no guarantee that a commit will be deployed promptly.
+
+GitHub Actions provides a “Concurrency” feature for this use case. Use concurrency to ensure that only a single job or workflow using the same concurrency group will run at a time. A concurrency group can be any string or expression. 
+
+This means that there can be at most one running and one pending job in a concurrency group at any time. When a concurrent job or workflow is queued, if another job or workflow using the same concurrency group in the repository is in progress, the queued job or workflow will be pending. Any existing pending job or workflow in the same concurrency group, if it exists, will be canceled and the new queued job or workflow will take its place.
+
+To also cancel any currently running job or workflow in the same concurrency group, specify cancel-in-progress: true. To conditionally cancel currently running jobs or workflows in the same concurrency group, you can specify cancel-in-progress as an expression with any of the allowed expression contexts.
+
 ## Pull Request Triggers
 
 GitHub Actions provides two distinct events for handling pull requests: ```pull_request``` and ```pull_request_target```. Both can trigger workflows in response to pull request activity, but they differ significantly in their security contexts, usage scenarios, and access to repository secrets.
