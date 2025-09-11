@@ -64,22 +64,7 @@ sections:
           icon: compass
           icon_pack: fas
           text: Explore
-          url: "#posts"    
-      - title: Collaborate and Contribute ✨
-        content: ''
-        align: left
-        background:
-          image: 
-            filename: teamwork.jpeg
-            filters: 
-              brightness: 0.8
-            position: center
-            color: '#5C4033'
-        link:
-          icon: discord
-          icon_pack: fab
-          text: Discord
-          url: "https://discord.gg/5kf8dzqQFv"    
+          url: "#posts"      
     design:
       # Slide height is automatic unless you force a specific height (e.g. '400px')
       slide_height: ''
