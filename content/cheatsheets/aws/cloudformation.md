@@ -14,7 +14,7 @@ AWS infrastructure via CloudFormation
 
 <!--more-->
 
-### Overview
+## Overview
 
 ![AWS-CloudFormation](/images/uploads/cloudformation.png)
 
@@ -22,22 +22,23 @@ AWS CloudFormation is an AWS service which allows us to **declaratively** descri
 
 In AWS CloudFormation we will work with the CloudFormation template and using the template we are creating a **stack**. The template describes what AWS services are been provisioned into the stack. 
 
-### Template Anatomy
+## Template Anatomy
 
 There are 7 main sections will feature in the template and only the ```Resources``` section is **mandatory**.
 
-1. **AWSTemplateFormatVersion**: This is the template version. As of now, we do have only “2010–09–09” as a version.
-2. **Description**: This section will describe the CloudFormation template. We can use String to do that.
-3. **Parameters**: This section contains collections of key-value pairs and it allows us to pass parameter values to the template. For an example, we can pass the instant type.
-4. **Mappings**: This section contains collections of key-value pairs. We can define constant values in here and later we can refer those values. For an example, we can define our company public IPs.
-5. **Conditions**: Conditions section contains conditional logic that define the circumstances under which entities are created or configured.
-6. **Resources**: This section describes our AWS resources. This section is a **mandatory** section.
-7. **Outputs**: In this section, we can define the values which need to take as an output.
-For an example elastic IP or a load balancer DNS.
+```markmap {height="200px"}
+- CloudFormation
+  - AWSTemplateFormatVersion
+  - Description
+  - Parameters
+  - Conditions
+  - Resources
+  - Outputs
+```
 
-### Parameters
+## Parameters
 
-* Parameters enable us to input custom values to our template each time when we create or update stack.
+* ```Parameters``` enable us to input custom values to our template each time when we create or update stack.
 * We can have maximum of **60** parameters in a cfn template.
 * Each parameter must be given a logical name (logical id) which must be alphanumeric and unique among all logical names within the template.
 * Each parameter must be assigned a **parameter type** that is supported by AWS CloudFormation. 
@@ -65,9 +66,9 @@ For an example elastic IP or a load balancer DNS.
 
 {{< figure src="images/uploads/cloudformation-mappings.png" class="alignright">}}
 
-### Mappings
+## Mappings
 
-* Mappings section matches a key to a corresponding set of named values. 
+* ```Mappings``` section matches a key to a corresponding set of named values. 
 * For example, if we want to set values based on a region, we can create a mapping that uses region name as a key and contains the values we want to specify for each region
 * We can use Fn::FindInMap intrinsic function to retrieve values in map.
 * You can't include parameters, pseudo parameters, or intrinsic functions in the Mappings section.
@@ -91,9 +92,9 @@ Mappings:
 
 {{% /callout %}}
 
-### Conditions
+## Conditions
 
-* Conditions section contains statements that define the circumstances under which entities are created or configured.
+* ```Conditions``` section contains statements that define the circumstances under which entities are created or configured.
   * **Example: 1** - We can create a condition and then associate it with a resource or output so that AWS CloudFormation only creates the resource or output if the condition is true.
   * **Example: 2** - We can associate the condition with a property so that AWS CloudFormation only sets the property to a specific value if the condition is true, if the condition is false, AWS CloudFormation sets the property to a different value that we specify.
 * We will use conditions, when we want to **re-use** the template in different contexts like ```dev``` and ```prod``` environments. 
@@ -128,9 +129,9 @@ Conditions:
 
 {{% /callout %}}
  
-### Resources
+## Resources
 
-* Resources are key components of a stack. 
+* ```Resources``` are key components of a stack. 
 * Resources section is a required section that need to be defined in cloud formation template.
 * Syntax:
 ![CloudFormation-Resources](/images/uploads/cloudformation-resources.png)
@@ -149,7 +150,7 @@ Resources:
         - !Ref SSHSecurityGroup
 ```
 
-### EC2 User Data
+## EC2 User Data
 
 * We can use UserData in CloudFormation template for ec2. 
 * We need to use a intrinsic function ```Fn::Base64``` with UserData in CFN templates. This function returns the Base64 representation of input string. It passes encoded data to ec2 Instance. 
@@ -179,9 +180,9 @@ Resources:
       java -Ddb-instance-identifier=${DBInstanceIdentifier} -Ddatabase-name=${DBName} -DrdsUser=${DBUser} -DrdsPassword=${DBPassword} -Dspring.profiles.active=aws -jar springboot-aws-starter.jar
 ```
 
-### Outputs
+## Outputs
 
-* Outputs section declares output values that we can 
+* ```Outputs``` section declares output values that we can 
   * Import in to other stacks (to create **cross-stack** references)
   * When using ```Nested``` stacks, outputs of a nested stack are used in ```Root``` Stack. 
 * We can declare maximum of **60** outputs in a cfn template. 
@@ -207,7 +208,7 @@ Outputs:
     Value: !Join ['', ['http://', !GetAtt 'LoadBalancer.DNSName','/context-root/']]
 ```
 
-### Intrinsic Functions
+## Intrinsic Functions
 
 * AWS CloudFormation provides several built-in functions that help you manage your stacks. 
 * Use intrinsic functions to assign values to properties that are not available until runtime.
@@ -236,7 +237,7 @@ Fn::Base64:
 ```
 {{% /callout %}}
 
-Following are a 🧠 list of most used functions:
+Following are a 📃 of most used functions:
 
 ###### !Ref
 
@@ -414,7 +415,7 @@ Subnet0:
 
 {{% /callout %}}
 
-### Pseudo Parameters
+## Pseudo Parameters
 
 * Pseudo parameters are parameters that are predefined by AWS CloudFormation.
 * We don’t need to declare them in our template.
@@ -431,7 +432,7 @@ Subnet0:
   * AWS::StackName
   * AWS::URLSuffix
 
-### Metadata
+## Metadata
 
 We have three types of metadata keys which are listed below: 
 * Metadata Keys
@@ -439,7 +440,7 @@ We have three types of metadata keys which are listed below:
   * AWS::CloudFormation::Interface: Used for parameter grouping.
   * AWS::CloudFormation::Init: Used for application installation and configurations on our aws compute (EC2 instances).
 
-### Helper Scripts
+## Helper Scripts
 
 * By default, ```UserData``` scripts run only during the boot cycle when we first launch an instance. We cannot **update/evolve** the state of the EC2 instance without terminating it and creating a new one. Also there's no way of knowing that our EC2 user-data script completed successfully
 
@@ -493,7 +494,7 @@ We have three types of metadata keys which are listed below:
 
 ![CloudFormation-cfn-init](/images/uploads/cloudformation-cfn-init-3.png)
 
-### Nested Stacks
+## Nested Stacks
 
 * The ```AWS::CloudFormation::Stack``` type nests a stack as a resource in a top-level template. 
 * The nested stacks have to be stored in a ```versioned``` S3 bucket which the root stack can access.
@@ -600,21 +601,21 @@ Outputs:
   
 ```
 
-### Rollbacks
+## Rollbacks
 
 * Stack **Creation** Fails:
   * Default: Everything rollsback (gets **deleted**). We can look at the log. There is an option to disable rollback and troubleshoot what happened.
 * Stack **Update** Fails:
   * The stack automatically rolls back to the previous known working state. Ability to see in the log what happened and error messages
 
-### Drift
+## Drift
 
 * CloudFormation doesn’t protect you against **manual** configuration changes after the Stack is created.
 * To detect if our resources have changed, we can use CloudFormation **drift** feature.
 * Not all resources are supported yet: 
 https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-stack-drift-resource-list.html
 
-### Stack Policy
+## Stack Policy
 
 * By default, anyone with stack update permissions can update all of the stack resources, and during the update process some resources might require **downtime** or even they get **replaced**😬 (that could be 💥in **Prod**)
 * Stack policies prevents **accidental/unintentional** updates to Stack Resources.
@@ -674,7 +675,7 @@ If a stack policy includes **overlapping** statements (both allowing and denying
 * Finally if you **have** to update a resource protected by an ```Update``` policy, you could use an updated ```Update``` policy for that **particular** change.
 That policy would be temporary and would apply to that one change only.
 
-### DeletionPolicy 
+## DeletionPolicy 
 
 * You can put a **DeletionPolicy** on any resource to control what happens when the CloudFormation template is **deleted**
 * DeletionPolicy=**Retain**:
@@ -706,7 +707,7 @@ Resources:
 
 {{% /callout %}}
 
-### Custom Resources
+## Custom Resources
 
 **Custom resources** enable you to write custom provisioning logic in templates that AWS CloudFormation runs anytime you ```create```, ```update``` or ```delete``` stacks. For example, you might want to include resources that aren't available as AWS CloudFormation resource types. All such use-cases could be served by a ```Custom Resource``` implemented using ```Lambda``` function or ```SNS```. Here's how it works:  
 
@@ -739,7 +740,7 @@ Here's some scenarios
 - ❓If we create an IAM user with a custom password via CloudFormation, we need to make sure the password is correct!
   - 💡A second parameter (confirm password) can be created, and a Lambda Function checks and confirms if they match. Stack creation only proceeds if they match.
 
-### SSM Parameters
+## SSM Parameters
 
 * Reference parameters in ```Systems Manager``` Parameter Store
 * Specify SSM parameter **key** as the value in CloudFormation template.
@@ -772,7 +773,7 @@ Resources:
       ImageId: !Ref ImageId
 ```
 
-### Dynamic References
+## Dynamic References
 
 * Reference values stored in ```SSM``` Parameter Store of type String and StringList
 * If no version specified, CloudFormation uses the latest version
@@ -810,13 +811,10 @@ Resources:
       MasterUserPassword: '{{resolve:secretsmanager:MyRDSSecret:SecretString:password}'
 ```
 
-### StackSets
+## StackSets
 
 AWS CloudFormation ```StackSet``` extends the functionality of stacks by enabling you to create, update, or delete stacks across multiple accounts and regions with a single operation. A stack set lets you create stacks in AWS accounts across regions by using a single AWS CloudFormation template. Using an administrator account of an ```AWS Organization```, you define and manage an AWS CloudFormation template, and use the template as the basis for provisioning stacks into selected target accounts across specified regions.
 
 A StackSet is a ```regional``` resource. If you create a StackSet in one AWS Region, you can only see or change it when viewing that Region.
 
 ![CloudFormation-StackSet](/images/uploads/cloudformation-stackset.png)
-
-
-
