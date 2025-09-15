@@ -14,7 +14,7 @@ Monitoring and Logging in AWS
 
 <!--more-->
 
-## Overview
+## 🔎Overview
 
 > ```Security``` is job number 1️⃣, and ```everything``` fails all the time - Werner Vogels, Amazon CTO
 
@@ -42,7 +42,7 @@ The 3 pillars 🏛️ of observability in AWS:
 
 Overall all together these 3 technologies give you a solid foundation to observability in AWS.
 
-## CloudWatch
+## 🧐CloudWatch
 
 * Amazon CloudWatch is Amazon’s main **observability** service. With a log server, metrics server, dashboards, and alarms, it provides a wide range of observability features.
 
@@ -308,7 +308,7 @@ For Amazon Elastic Container Service (Amazon ECS), deploy the CloudWatch agent a
     * CloudWatch dashboards are customizable home pages in the CloudWatch console that you can use to monitor resources in a single view, even those resources that are spread across different Regions. 
     * You can use CloudWatch dashboards to create customized views of the metrics and alarms for your AWS resources.
 
-## X-Ray
+## 🎞️X-Ray
 
 * AWS X-Ray is a service that collects data about your requests that your application serves and it
   provides you with tools you can use to view filter and gain insights into that data to identify issues
@@ -460,17 +460,76 @@ For Amazon Elastic Container Service (Amazon ECS), deploy the CloudWatch agent a
    * API gateway
    * Elastic Beanstalk
 
-## CloudTrail
+## 👣CloudTrail
+
+```CloudTrail``` is AWS’s native auditing service that tracks all API activity across your account. It’s your go-to for security investigations, compliance audits, and operational visibility.
+
+  {{< figure src="images/uploads/aws-cloudtrail-overview.png" width="300" height="500" class="alignright">}}
 
 * Provides governance, compliance and audit for your AWS Account
 * CloudTrail is enabled by default!
 * Get an history of events / API calls made within your AWS Account by:
-  * Console
-  * SDK
-  * CLI
-  * AWS Services
-* Can put logs from CloudTrail into CloudWatch Logs
-* If a resource is deleted in AWS, look👀 into CloudTrail first!
+  * 🖥️Console 
+  * 🧰SDKs, 
+  * 💻CLI, 
+  * ⚙️AWS Services
+
+* Can stream logs to ```CloudWatch``` Logs
+* If a resource is deleted in AWS, look👀 into ```CloudTrail``` first!
+* Events are stored for **90** days in ```CloudTrail```
+* To keep events beyond this period, log them to ```S3``` and use ```Athena```
+
+###### CloudTrail Events
+
+![CloudTrail-Events](/images/uploads/aws-cloudtrail-events.png)
+- Management Events:
+  - Operations that are performed on resources in your AWS account
+  - Examples:
+    - Configuring security (IAM ```AttachRolePolicy```)
+    - Configuring rules for routing data (Amazon EC2 CreateSubnet)
+    - Setting up logging (AWS CloudTrail ```CreateTrail```)
+    - By default, trails are configured to log management events.
+    - Can separate ```Read Events``` (that don’t modify resources) from ```Write Events``` (that may modify resources)
+- Data Events:
+  - **High-volume** resource-level actions. By default, data events are **not** logged 
+  - Examples: 
+    - Amazon S3 object-level activity (ex: GetObject, DeleteObject, PutObject): can separate Read and Write Events
+    - AWS Lambda function execution activity (the Invoke API)
+- CloudTrail Insights Events:
+  - Enable CloudTrail Insights (it's **not** 🫰) to detect unusual activity in your account:
+  - Examples:
+    - Inaccurate resource provisioning
+    - Hitting service limits
+    - Bursts of AWS IAM actions
+    - Gaps in periodic maintenance activity
+    - CloudTrail Insights analyzes normal management events to create a baseline
+    - And then continuously analyzes write events to detect unusual patterns
+    - Anomalies appear in the CloudTrail console
+    - Event is sent to Amazon S3
+    - An EventBridge event is generated (for automation needs)
+
+* CloudTrail – Amazon EventBridge – Intercept API Calls
+![CloudTrail-SA](/images/uploads/aws-cloudtrail-intercept-api.png)
+
+* CloudTrail – Delivery to S3
+![CloudTrail-SA](/images/uploads/aws-cloudtrail-s3.png)
+
+* CloudTrail - Solution Architecture: Multi Account, Multi Region Logging
+![CloudTrail-SA](/images/uploads/aws-cloudtrail-logging.png)
+
+* CloudTrail - Alert for API calls
+  * Log filter metrics can be used to detect a high level of API happening
+  * Ex: Count occurrences of EC2 TerminateInstances API
+  * Ex: Count of API calls per user
+  * Ex: Detect high level of Denied API calls
+![CloudTrail-SA](/images/uploads/aws-cloudtrail-alerts.png)
+
+* CloudTrail – Organizational Trail
+  * The ```Organizational Trail``` is created in the management account.
+![CloudTrail-SA](/images/uploads/aws-cloudtrail-organization.png)
+
+## 🆚Comparison
+
 
 {{< tabs name="CloudWatch vs X-Ray vs CloudTrail" >}}
 {{% tab name="CloudWatch" %}}

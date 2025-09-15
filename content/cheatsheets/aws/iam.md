@@ -30,17 +30,23 @@ Accessing AWS services requires two things:
 This diagram gives an overview of how the main entities within IAM relate to each other:
 ![Users-Groups-Roles](/images/uploads/iam-intro-diagram.png)
 
-In IAM, a **Principal** is any entity that can be authenticated and make requests to AWS services. This includes:
+In IAM, a **Principal** is any entity that can be authenticated and make requests to AWS services. These include:
 
-- **IAM Users**
-- **IAM Roles**
-- **Applications** 
-- **Federated Users**
+{{< accordion "IAM Users" >}}
+  * Example: Human users like say a ```sysadmin``` managing different departments with distinct permissions.
+{{< /accordion >}}
 
-> - User Example: Human users like say a ```sysadmin``` managing different departments with distinct permissions.
-> - Role Example: An ```EC2``` instance assumes a role via the metadata service to access S3 securely.
-> - Application Example: ```Containers``` using IAM roles for tasks (via ECS Task Roles or IRSA in EKS)
-> - Federated Example: ```CI/CD``` pipelines assuming roles for deployment
+{{< accordion "IAM Roles" >}}
+  * Example: An ```EC2``` instance assumes a role via the metadata service to access S3 securely.
+{{< /accordion >}}
+
+{{< accordion "Applications" >}}
+  * Example: ```Containers``` using IAM roles for tasks (via ECS Task Roles or IRSA in EKS)
+{{< /accordion >}}
+
+{{< accordion "Federated Users" >}}
+  * Example: GitHub OIDC with AWS for CI/CD using GitHub Actions.
+{{< /accordion >}}
 
 - **IAM Groups** are permission containers, and **not Principals**. They:
   - Organize users

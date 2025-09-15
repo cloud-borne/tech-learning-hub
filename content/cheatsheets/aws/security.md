@@ -14,13 +14,13 @@ Security Fundamentals in AWS
 
 <!--more-->
 
-## Encryption
+## 🔐Encryption
 
 Encryption is a critical component of a defense-in-depth strategy, which is a security approach adopted by AWS with a series of defensive mechanisms designed so that if one security mechanism fails, there’s at least one more still operating.
 
 There are 2 forms of encryption in practice:
 
-### Encryption in transit:
+###### Encryption in transit:
 
 * Data is encrypted before sending and decrypted after receiving
 * SSL certificates help with encryption (HTTPS)
@@ -28,7 +28,7 @@ There are 2 forms of encryption in practice:
 
 ![HTTPS](/images/uploads/encryption-in-transit.PNG)
 
-### Encryption at Rest
+###### Encryption at Rest
 
 * Data is encrypted after being received by the server
 * Data is decrypted before being sent
@@ -68,7 +68,7 @@ KMS is used to fully manage the keys & their policies:
   * User Keys created in KMS: $1 / month
   * User Keys imported (must be 256-bit symmetric key): $1 / month
 
-### Customer Master Key (CMK) Types
+###### Customer Master Key (CMK) Types
 
 * Symmetric (AES-256 keys)
 
@@ -89,12 +89,12 @@ KMS is used to fully manage the keys & their policies:
   * The public key is downloadable, but you access the Private Key unencrypted
   * Use case: encryption outside of AWS by users who can’t call the KMS API
 
-### How does KMS work?
+###### How does KMS work?
 API – Encrypt and Decrypt
 
 ![KMS-API](/images/uploads/kms-encrypt-decrypt.PNG)
 
-### Envelope Encryption
+###### Envelope Encryption
 
 * KMS Encrypt API call has a limit of 4 KB
 * If you want to encrypt >4 KB, we need to use Envelope Encryption using Data Keys
@@ -115,7 +115,7 @@ When you want to decrypt it, call the KMS API with the encrypted data key and KM
 
 ![KMS-Envelope-Decrypt](/images/uploads/kms-envelope-decrypt.PNG)
 
-### Encryption SDK
+###### Encryption SDK
 
 * The AWS Encryption SDK implemented Envelope Encryption for us
 * The Encryption SDK also exists as a CLI tool we can install
@@ -126,7 +126,7 @@ When you want to decrypt it, call the KMS API with the encrypted data key and KM
   * Helps with reducing the number of calls to KMS with a security trade-off
   * Use LocalCryptoMaterialsCache (max age, max bytes, max number of messages)
 
-### KMS Key Policies
+###### KMS Key Policies
 
 * One of the powerful features in KMS is the ability to define permission separately for those who use the keys and administrate the keys. This is achieved using Key Policies. You can control access to KMS keys, “similar” to S3 bucket policies.
 
@@ -199,7 +199,7 @@ When you want to decrypt it, call the KMS API with the encrypted data key and KM
   }
   ```
 
-### KMS Request Quotas
+###### KMS Request Quotas
 
 * When you exceed a request quota, you get a ThrottlingException:
 
@@ -212,7 +212,7 @@ When you want to decrypt it, call the KMS API with the encrypted data key and KM
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Decrypt<br>Encrypt<br>GenerateDataKey (symmetric)<br>GenerateDataKeyWithoutPlaintext (symmetric)<br>GenerateRandom<br>ReEncrypt<br>Sign (asymmetric)<br>Verify (asymmetric) | These shared quotas vary with the AWS Region and the type of CMK used in the request. Each quota is calculated separately.<br>Symmetric CMK quota:<br>* 5,500 (shared)<br>* 10,000 (shared) in the following Regions:<br>* us-east-2, ap-southeast-1, ap-southeast-2,<br>ap-northeast-1, eu-central-1, eu-west-2<br>* 30,000 (shared) in the following Regions:<br>* us-east-1, us-west-2, eu-west-1<br>Asymmetric CMK quota:<br>* 500 (shared) for RSA CMKs<br>* 300 (shared) for Elliptic curve (ECC) CMKs |
 
-### S3 Encryption for Objects
+###### S3 Encryption for Objects
 
 * There are 4 methods of encrypting objects in S3 at rest
 
@@ -221,7 +221,7 @@ When you want to decrypt it, call the KMS API with the encrypted data key and KM
   * SSE-C: when you want to manage your own encryption keys
   * Client Side Encryption
 
-  #### SSE-KMS
+  ###### SSE-KMS
 
   * SSE-KMS: encryption using keys handled & managed by KMS
   * KMS Advantages: user control + audit trail via CloudTrail
@@ -275,8 +275,7 @@ When you want to decrypt it, call the KMS API with the encrypted data key and KM
 
 ## SSM ParameterStore
 
-<img align="right" width="250" height="250" src="/images/uploads/ssm-parameter-store.PNG">
-
+{{< figure src="images/uploads/ssm-parameter-store.PNG" width="300" height="500" class="alignright">}}
 * Secure storage for configuration and secrets
 * Optional Seamless Encryption using KMS
 * Serverless, scalable, durable, easy SDK
@@ -288,7 +287,6 @@ When you want to decrypt it, call the KMS API with the encrypted data key and KM
 
   * /my-department/
     * my-app/
-    <img align="right" width="300" height="300" src="/images/uploads/ssm-parameter-store-api.PNG">
       * dev/
         * db-url
         * db-password
