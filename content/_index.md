@@ -391,6 +391,14 @@ sections:
       #   Leave other parameters empty if not required.
       #   Begin multi-line descriptions with YAML's `|2-` multi-line prefix.
       items:
+        - certificate_url: https://www.credly.com/badges/b9e16b23-78e1-4936-bf0b-23fcda6cdd6d
+          date_end: ""
+          date_start: "2025-08-10"
+          description: ""
+          organization: AWS
+          organization_url: https://aws.amazon.com/certification/certified-architect-associate/
+          title: AWS Certified Architect - Associate
+          url: ""
         - certificate_url: https://www.credly.com/badges/eb692716-86d0-40f9-8a35-0acb44d51717/public_url
           date_end: ""
           date_start: "2021-01-25"
