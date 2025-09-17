@@ -20,7 +20,7 @@ Encryption is a critical component of a defense-in-depth strategy, which is a se
 
 There are 2 forms of encryption in practice:
 
-###### Encryption in transit:
+###### Encryption in transit🚙:
 
 * Data is encrypted before sending and decrypted after receiving
 * SSL certificates help with encryption (HTTPS)
@@ -28,7 +28,7 @@ There are 2 forms of encryption in practice:
 
 ![HTTPS](/images/uploads/encryption-in-transit.PNG)
 
-###### Encryption at Rest
+###### Encryption at Rest💤:
 
 * Data is encrypted after being received by the server
 * Data is decrypted before being sent
@@ -48,67 +48,134 @@ There are 2 forms of encryption in practice:
 
      ![Server-Side](/images/uploads/encryption-at-rest-server.PNG)
 
-## KMS
+## 🗝️KMS
 
-AWS Key Management Store (KMS) is a managed service that enables you to easily encrypt your data.
+AWS Key Management Store (```KMS```) is a managed service that enables you to easily **encrypt** your data.
 AWS KMS provides a highly available key storage, management, and auditing solution for you to encrypt data within your own applications and control the encryption of stored data across AWS services.
 
-AWS KMS (Key Management Service) is the service that manages encryption keys on AWS. These encryption keys are called “Customer Master Keys” or CMKs for short.
-
 KMS is used to fully manage the keys & their policies:
-* Create
-* Rotation policies
-* Disable
-* Enable
-* Able to audit key usage (using CloudTrail)
-* Pay for API call to KMS ($0.03 / 10000 calls)
-* Three types of Customer Master Keys (CMK):
+* 🆕Create
+* 🔄Rotation policies
+* ⏸️Disable
+* ▶️Enable
+* 🔎Able to audit key usage (using CloudTrail)
+* 💶Pay for API call to KMS ($0.03 / 10000 calls)
 
-  * AWS Managed Service Default CMK: free
-  * User Keys created in KMS: $1 / month
-  * User Keys imported (must be 256-bit symmetric key): $1 / month
+###### KMS Key Types
 
-###### Customer Master Key (CMK) Types
+```markmap {height="300px"}
+- 🔐**KMS Keys**
+  - 🔧**Customer Managed Keys**
+      Full lifecycle control
+      Custom key policies
+      $1/month + usage
+    - 🔁**Symmetric Keys**
+        AES-256
+        Used for ```Encrypt/Decrypt```
+        - 📨**Data Keys**
+             Ephemeral symmetric keys
+             Used for local encryption of large data (Envelope Encryption)
+        - 🌍**Multi-Region Keys**
+             Replicated across AWS regions
+             Enables **cross-region** encryption/decryption
+    - 🔀**Asymmetric Keys**
+         RSA or ECC key pairs
+         Used for ```Encrypt/Decrypt``` or ```Sign/Verify```
+  - 🛠️**AWS Managed Keys**
+       Created and managed by AWS
+       Always 🔁**Symmetric Keys**
+       Free
+  - 🏢**AWS Owned Keys**
+       Internal to AWS
+       Used for **default** encryption
+       Always 🔁**Symmetric Keys**
+       Free
+```
 
-* Symmetric (AES-256 keys)
+###### Customer Managed Key (CMK) Types
 
-  * First offering of KMS, single encryption key that is used to Encrypt and Decrypt
-  * AWS services that are integrated with KMS use Symmetric CMKs
-  * Necessary for envelope encryption
-  * You never get access to the Key unencrypted (must call KMS API to use)
-  * KMS can only help in encrypting up to 4KB of data per call. If data > 4 KB, then use Data Keys.
+* 🔁**Symmetric** (```AES-256``` keys)
+
+  * Single encryption key that is used to ```Encrypt``` and ```Decrypt```
+  * AWS services that are integrated with KMS use ```Symmetric``` CMKs
+  * Necessary for ```Envelope``` encryption
+  * You never get access to the unencrypted Key (must call KMS APIs to use)
+  * KMS can only help in encrypting up to **4KB** of data per call. If data > 4 KB, then use ```Data Keys```.
   * To give access to KMS to someone:
-
     * Make sure the Key Policy allows the user
     * Make sure the IAM Policy allows the API calls
 
-* Asymmetric (RSA & ECC key pairs)
-
-  * Public (Encrypt) and Private Key (Decrypt) pair
-  * Used for Encrypt/Decrypt, or Sign/Verify operations
-  * The public key is downloadable, but you access the Private Key unencrypted
-  * Use case: encryption outside of AWS by users who can’t call the KMS API
-
-###### How does KMS work?
-API – Encrypt and Decrypt
-
 ![KMS-API](/images/uploads/kms-encrypt-decrypt.PNG)
+
+* 🔀**Asymmetric** (```RSA``` & ```ECC``` key pairs)
+
+  * Public (```Encrypt```) and Private Key (```Decrypt```) pair
+  * Used for ```Encrypt/Decrypt```, or ```Sign/Verify``` operations
+  * ```Public``` key is **downloadable**; ```Private``` key remains **protected**.
+  * Anything encrypted with a ```public``` key can only be decrypted by the corresponding ```private``` key.
+  * 🧠Use case: encryption outside of AWS by users who can’t call the KMS API
+
+{{% callout note %}}
+
+Key Considerations:
+
+1. A key drawback to ```asymmetric``` cryptography is the fact that you cannot encrypt large pieces of data. When you have a 2048-bit RSA key pair and encrypt something by using the cipher RSAES_OASEP_SHA_256, the largest amount of data that you can encrypt is **190** bytes.
+
+2. In contrast, ```symmetric``` encryption ciphers that use a chained or counter-mode operation don’t have this limit, and they make it possible for you to encrypt data in the tens-of-gigabytes.
+
+3. KMS keys (symmetric or asymmetric) encryption limit: **4KB** (4096 bytes) per Encrypt API call - this is a ```KMS``` service-imposed limit, not a ```cryptographic``` one. 
+
+4. So typically the client would use a [hybrid cryptosystem](https://en.wikipedia.org/wiki/Hybrid_cryptosystem) i.e. the client encrypts its large payload by using a symmetric key, then encrypts that symmetric key by using the RSA public key. End clients then transmit only encrypted **data** and encrypted **key** across insecure channels, maintaining privacy of the payload data.
+
+{{% /callout %}}
+
+###### KMS Asymmetric Keys Encrypt-Decrypt (Offline) flow
+
+![KMS-Encrypt-Decrypt](/images/uploads/aws-kms-asymmetric-encrypt-decrypt.png)
+
+1. Create an ```RSA``` key pair in AWS KMS.
+2. Download or pre-install the AWS KMS ```public key``` to an end-client device.
+3. Generate an **AES 256-bit** (```symmetric```) key on an end client.
+4. Encrypt a large payload of data on the end client by using the **AES 256-bit** key.
+5. Encrypt the AES 256-bit key with the AWS KMS ```public key```.
+6. Transfer the encrypted **payload** and **key**.
+7. Decrypt the AES 256-bit key by using RSA ```private key``` in KMS.
+8. Decrypt the payload data by using the now decrypted AES 256-bit key.
+
+###### KMS Asymmetric Keys Sign-Verify flow
+
+![KMS-Sign-Verify](/images/uploads/aws-kms-asymmetric-sign-verify.png)
+
+1. During system setup, the ```Signer``` is provisioned with an ```asymmetric``` key pair. Signers such as AWS KMS support internal hardware security module (HSM)-backed, high-entropy asymmetric key generation and management.
+2. The ```Verifiers``` are configured to trust the ```Signer``` through an offline import of the Signer’s ```public key```.
+3. During runtime, AWS KMS is requested to hash and create a digital signature over some original data. AWS KMS hashes the provided data and uses the ```private key``` in the asymmetric key pair to compute the signature over the hash. The original data, along with its signature, is delivered to a client.
+4. The client forwards the data and signature to one or more ```Verifiers```, and requests access to their protected resources.
+5. The ```Verifiers``` verify the signature that is associated with the original data. The Verifiers use the Signer’s ```public key``` in this process. If the verification succeeds, meaning that the original data that was conveyed is unaltered and authentic, the ```Verifiers``` grant the client access to their protected resources.
 
 ###### Envelope Encryption
 
-* KMS Encrypt API call has a limit of 4 KB
-* If you want to encrypt >4 KB, we need to use Envelope Encryption using Data Keys
+* KMS ```Encrypt API``` call has a limit of **4KB**
+* If you want to encrypt >4 KB, we need to use ```Envelope Encryption``` using ```Data Keys```
 * Data Keys are generated from CMKs. There is a direct relationship between Data Key and a CMK. However, AWS does NOT store or manage Data Keys. Instead, you have to manage them.
-* The main API that will help us is the GenerateDataKey API
+* The main API that will help us is the ```GenerateDataKey``` API
+* You can use one Customer Managed Key (```CMK```) to generate thousands of unique data keys. You can generate data keys from a CMK using two methods:
+  * Generate both Plaintext Data Key and Encrypted Data Key (```GenerateDataKey```)
+  * Generate only the Encrypted Data Key (```GenerateDataKeyWithoutPlaintext```)
 
-You can use one Customer Master Key (CMK) to generate thousands of unique data keys. You can generate data keys from a CMK using two methods.
-  * Generate both Plaintext Data Key and Encrypted Data Key (GenerateDataKey)
-  * Generate only the Encrypted Data Key (GenerateDataKeyWithoutPlaintext)
+* Once you get the Plaintext data key and Encrypted data key from CMK, use the Plaintext data key to encrypt your data. 
+* After encryption, never keep the Plaintext data key together with encrypted data(Ciphertext) since anyone can decrypt the Ciphertext using the Plaintext key. So remove the Plaintext data key from the memory as soon as possible. You can keep the Encrypted data key with the Ciphertext.  
+* The method of encrypting the key using another key is called ```Envelope Encryption```. By encrypting the key, that is used to encrypt data, you will protect both data and the key.
 
-Once you get the Plaintext data key and Encrypted data key from CMK, use the Plaintext data key to encrypt your data. After encryption, never keep the Plaintext data key together with encrypted data(Ciphertext) since anyone can decrypt the Ciphertext using the Plaintext key. So remove the Plaintext data key from the memory as soon as possible. You can keep the Encrypted data key with the Ciphertext.  
-
-The method of encrypting the key using another key is called **Envelope** Encryption. By encrypting the key, that is used to encrypt data, you will protect both data and the key.
-
+```mermaid
+sequenceDiagram
+    participant App
+    participant KMS
+    App->>KMS: GenerateDataKey
+    KMS-->>App: Plaintext Key + Encrypted Key
+    App->>App: Encrypt data with Plaintext Key
+    App->>App: Discard Plaintext Key
+    App->>Storage: Store Encrypted Data + Encrypted Key
+```
 ![KMS-Envelope-Encrypt](/images/uploads/kms-envelope-encrypt.PNG)
 
 When you want to decrypt it, call the KMS API with the encrypted data key and KMS will send you the Plaintext key if you are authorized to receive it. Afterward, you can decrypt the Ciphertext using the Plaintext key.
@@ -128,84 +195,160 @@ When you want to decrypt it, call the KMS API with the encrypted data key and KM
 
 ###### KMS Key Policies
 
-* One of the powerful features in KMS is the ability to define permission separately for those who use the keys and administrate the keys. This is achieved using Key Policies. You can control access to KMS keys, “similar” to S3 bucket policies.
+* One of the powerful features in KMS is the ability to define permission separately for those who **use** the keys and **administrate** the keys. This is achieved using Key Policies (it's a ```Resource Based``` Policy). You can control access to KMS keys, *similar* to S3 bucket policies.
 
-* Default KMS Key Policy:
+* **Default** KMS Key Policy:
   * Created if you don’t provide a specific KMS Key Policy
-  * Complete access to the key to the root user = entire AWS account
+  * Complete access to the key to the ```root``` user = entire AWS account
   * Gives access to the IAM policies to the KMS key
-* Custom KMS Key Policy:
+  * The below Key Policy (**Default**) is applied to the ```root``` user of the account. It allows full access to the CMK for any user in the account.
+
+    ```JSON
+    {
+      "Sid": "Enable IAM User Permissions",
+      "Effect": "Allow",
+      "Principal": {"AWS": "arn:aws:iam::111122223333:root"},
+      "Action": "kms:*",
+      "Resource": "*"
+    }
+    ```
+
+* **Custom** KMS Key Policy:
   * Define users, roles that can access the KMS key
   * Define who can administer the key
-  * Useful for cross-account access of your KMS key
+  * Useful for **cross-account** access of your KMS key
+  * If you choose to distinguish users and roles who can manage key usage and key administration then we could achieve as follows:
+  * The below IAM policy is applied to the IAM user ```KeyUser```. Now he has permission to use the CMK for encryption and decryption. However, he is not allowed to administrate that CMK.
 
-* The below **Key Policy** (Default) is applied to the root user of the account. It allows full access to the CMK for any user in the account.
+    ```JSON
+      {
+      "Sid": "Allow use of the key",
+      "Effect": "Allow",  
+      "Principal": {"AWS": "arn:aws:iam::111122223333:user/KeyUser"},
+      "Action": [
+        "kms:Decrypt",
+        "kms:DescribeKey",
+        "kms:Encrypt",
+        "kms:GenerateDataKey*",
+        "kms:ReEncrypt*"
+      ],
+      "Resource": "*"
+    }
+    ```
+  * The below **IAM policy** allows administrators (```KeyManager```) to administrate the CMK that it is applied to. However, the administrator cannot use the key to Encrypt or Decrypt data.
 
-```JSON
+    ```JSON
+      {
+      "Sid": "Allow access for Key Administrators",
+      "Effect": "Allow",
+      "Principal": {"AWS": [
+        "arn:aws:iam::111122223333:user/KeyManager"
+      ]},
+      "Action": [
+        "kms:Create*",
+        "kms:Describe*",
+        "kms:Enable*",
+        "kms:List*",
+        "kms:Put*",
+        "kms:Update*",
+        "kms:Revoke*",
+        "kms:Disable*",
+        "kms:Get*",
+        "kms:Delete*",
+        "kms:TagResource",
+        "kms:UntagResource",
+        "kms:ScheduleKeyDeletion",
+        "kms:CancelKeyDeletion"
+      ],
+      "Resource": "*"
+    }
+    ```
+
+###### Cross-Account Key Policy
+
+KMS keys are generally scoped per **Region**. That means if you have to copy a KMS encrypted ```EBS``` Volume across region:
+- 🚫 Default AWS Keys **can't** Be Used: Cross-region or cross-account snapshot copies require customer-managed CMKs — AWS-managed keys (```aws/ebs``` etc.) are not eligible because you cannot leverage a custom ```Key Policy```
+
+- 🔄 Shared CMK (```Trusted Zone```): If both accounts are within a trusted boundary, you can share the source CMK via Key Policy. The target account can copy the snapshot using the same CMK ARN. For **Shared** CMK, the source ```Key Policy``` must explicitly allow cross-account access (```kms:Decrypt```, ```kms:ReEncrypt```, etc.)
+
+- 📜 Key Policy & IAM Setup:  
+```json
 {
-  "Sid": "Enable IAM User Permissions",
-  "Effect": "Allow",
-  "Principal": {"AWS": "arn:aws:iam::111122223333:root"},
-  "Action": "kms:*",
-  "Resource": "*"
+  "Version": "2012-10-17",
+  "Id": "CrossAccountAccessKeyPolicy",
+  "Statement": [
+    {
+      "Sid": "AllowRootAccountAFullAccess",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::ACCOUNT_A_ID:root"
+      },
+      "Action": "kms:*",
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowAccountBViaEC2",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::ACCOUNT_B_ID:root"
+      },
+      "Action": [
+        "kms:Decrypt",
+        "kms:ReEncrypt*",
+        "kms:CreateGrant",
+        "kms:DescribeKey"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "kms:ViaService": "ec2.us-west-2.amazonaws.com",
+          "kms:CallerAccount": "ACCOUNT_B_ID"
+        },
+        "Bool": {
+          "kms:GrantIsForAWSResource": "true"
+        }
+      }
+    }
+  ]
 }
 ```
 
-* If you choose to distinguish users and roles who can manage key usage and key administration then we could achieve as follows:
+- 🔐 Isolated CMK (```Untrusted Zone```): If CMK sharing isn't allowed, the target account must copy the snapshot using its own CMK. AWS securely decrypts and re-encrypts the data during transfer. For **Isolated** CMK, the target account IAM Role must allow ```ec2:CopySnapshot``` and ```kms:Encrypt``` using the target CMK.
 
-  * The below **IAM policy** is applied to the IAM user ‘KeyUser’. Now he has permission to use the CMK for encryption and decryption. However, he is not allowed to administrate that CMK.
-
-  ```JSON
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
     {
-    "Sid": "Allow use of the key",
-    "Effect": "Allow",  
-    "Principal": {"AWS": "arn:aws:iam::111122223333:user/KeyUser"},
-    "Action": [
-      "kms:Decrypt",
-      "kms:DescribeKey",
-      "kms:Encrypt",
-      "kms:GenerateDataKey*",
-      "kms:ReEncrypt*"
-    ],
-    "Resource": "*"
-   }
-  ```
-  * The below **IAM policy** allows administrators ('KeyManager') to administrate the CMK that it is applied to. However, the administrator cannot use the key to Encrypt or Decrypt data.
-
-  ```JSON
+      "Sid": "CopySharedSnapshot",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:CopySnapshot",
+        "ec2:DescribeSnapshots"
+      ],
+      "Resource": "*"
+    },
     {
-    "Sid": "Allow access for Key Administrators",
-    "Effect": "Allow",
-    "Principal": {"AWS": [
-      "arn:aws:iam::111122223333:user/KeyManager"
-    ]},
-    "Action": [
-      "kms:Create*",
-      "kms:Describe*",
-      "kms:Enable*",
-      "kms:List*",
-      "kms:Put*",
-      "kms:Update*",
-      "kms:Revoke*",
-      "kms:Disable*",
-      "kms:Get*",
-      "kms:Delete*",
-      "kms:TagResource",
-      "kms:UntagResource",
-      "kms:ScheduleKeyDeletion",
-      "kms:CancelKeyDeletion"
-    ],
-    "Resource": "*"
-  }
-  ```
+      "Sid": "UseTargetCMKForEncryption",
+      "Effect": "Allow",
+      "Action": [
+        "kms:Encrypt",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ],
+      "Resource": "arn:aws:kms:us-west-2:TARGET_ACCOUNT_ID:key/TARGET_KEY_ID"
+    }
+  ]
+}
+```
 
 ###### KMS Request Quotas
 
 * When you exceed a request quota, you get a ThrottlingException:
 
-  * To respond, use exponential backoff (backoff and retry)
+  * To respond, use **exponential**🌀 backoff (backoff and retry)
   * For cryptographic operations, they share a quota. This includes requests made by AWS on your behalf (ex: SSE-KMS)
-  * For GenerateDataKey, consider using DEK caching from the Encryption SDK
+  * For ```GenerateDataKey```, consider using DEK caching from the Encryption SDK
   * You can request a Request Quotas increase through API or AWS support
 
 | API operation                                                                                                                                                               | Request quotas (per second)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -226,7 +369,7 @@ When you want to decrypt it, call the KMS API with the encrypted data key and KM
   * SSE-KMS: encryption using keys handled & managed by KMS
   * KMS Advantages: user control + audit trail via CloudTrail
   * Object is encrypted server side
-  * Must set header: “x-amz-server-side-encryption": ”aws:kms"
+  * Must set header: ```x-amz-server-side-encryption```: ”aws:kms"
   * SSE-KMS leverages the GenerateDataKey & Decrypt KMS API calls
   * These KMS API calls will show up in CloudTrail, helpful for logging
   * To perform SSE-KMS, you need:
@@ -323,3 +466,8 @@ When you want to decrypt it, call the KMS API with the encrypted data key and KM
   * KMS encryption is optional
   * Can integration with CloudFormation
   * Can pull a Secrets Manager secret using the SSM Parameter Store API
+
+## Further Read
+
+[How to use AWS KMS RSA keys for offline encryption](https://aws.amazon.com/blogs/security/how-to-use-aws-kms-rsa-keys-for-offline-encryption/)
+[How to verify AWS KMS signatures in decoupled architectures at scale](https://aws.amazon.com/blogs/security/how-to-verify-aws-kms-signatures-in-decoupled-architectures-at-scale/)
