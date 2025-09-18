@@ -66,29 +66,37 @@ KMS is used to fully manage the keys & their policies:
 ```markmap {height="300px"}
 - 🔐**KMS Keys**
   - 🔧**Customer Managed Keys**
-      Full lifecycle control
-      Custom key policies
+      Full lifecycle control  
+      Custom key policies  
       $1/month + usage
     - 🔁**Symmetric Keys**
-        AES-256
-        Used for ```Encrypt/Decrypt```
+        AES-256  
+        Used for ```Encrypt/Decrypt```  
         - 📨**Data Keys**
-             Ephemeral symmetric keys
+             Ephemeral symmetric keys  
              Used for local encryption of large data (Envelope Encryption)
-        - 🌍**Multi-Region Keys**
-             Replicated across AWS regions
-             Enables **cross-region** encryption/decryption
+        - 📥**Imported Key Material**
+             Bring your own key (```BYOK```)
+        - 🏦**External Key Store (```XKS```)**
+             Key lives outside AWS  
+             AWS KMS acts as proxy  
     - 🔀**Asymmetric Keys**
-         RSA or ECC key pairs
+         RSA or ECC key pairs  
          Used for ```Encrypt/Decrypt``` or ```Sign/Verify```
+    - 🌍**Multi-Region Capability**
+         Available for both Symmetric and Asymmetric keys  
+         Enables **cross-region** encryption/decryption  
+         Same key material, separate resource IDs
   - 🛠️**AWS Managed Keys**
-       Created and managed by AWS
-       Always 🔁**Symmetric Keys**
+       Created and managed by AWS  
+       Always 🔁**Symmetric Keys**  
+       View Key Policy(ReadOnly) and audit in CloudTrail
        Free
   - 🏢**AWS Owned Keys**
-       Internal to AWS
-       Used for **default** encryption
-       Always 🔁**Symmetric Keys**
+       Internal to AWS  
+       Used for **default** encryption  
+       Always 🔁**Symmetric Keys**  
+       No access to find/editds Key Policy
        Free
 ```
 
@@ -113,7 +121,9 @@ KMS is used to fully manage the keys & their policies:
   * Used for ```Encrypt/Decrypt```, or ```Sign/Verify``` operations
   * ```Public``` key is **downloadable**; ```Private``` key remains **protected**.
   * Anything encrypted with a ```public``` key can only be decrypted by the corresponding ```private``` key.
-  * 🧠Use case: encryption outside of AWS by users who can’t call the KMS API
+  * 🧠Use cases: 
+    * Encryption outside of AWS by users who can’t call the KMS API
+    * Public distribution of software packages (say ```Docker```) where end users needs to verify the authenticity.
 
 {{% callout note %}}
 
@@ -125,7 +135,7 @@ Key Considerations:
 
 3. KMS keys (symmetric or asymmetric) encryption limit: **4KB** (4096 bytes) per Encrypt API call - this is a ```KMS``` service-imposed limit, not a ```cryptographic``` one. 
 
-4. So typically the client would use a [hybrid cryptosystem](https://en.wikipedia.org/wiki/Hybrid_cryptosystem) i.e. the client encrypts its large payload by using a symmetric key, then encrypts that symmetric key by using the RSA public key. End clients then transmit only encrypted **data** and encrypted **key** across insecure channels, maintaining privacy of the payload data.
+4. So typically the client would use a [hybrid cryptosystem](https://en.wikipedia.org/wiki/Hybrid_cryptosystem) i.e. the client encrypts its large payload by using a symmetric key, then encrypts that symmetric key by using the downloaded RSA public key. End clients then transmit only encrypted **data** and encrypted **key** across insecure channels, maintaining privacy of the payload data.
 
 {{% /callout %}}
 
@@ -144,6 +154,8 @@ Key Considerations:
 
 ###### KMS Asymmetric Keys Sign-Verify flow
 
+The asymmetric CMKs offer digital signature capability, which data consumers can use to verify that data is from a trusted producer and is unaltered in transit.
+
 ![KMS-Sign-Verify](/images/uploads/aws-kms-asymmetric-sign-verify.png)
 
 1. During system setup, the ```Signer``` is provisioned with an ```asymmetric``` key pair. Signers such as AWS KMS support internal hardware security module (HSM)-backed, high-entropy asymmetric key generation and management.
@@ -154,17 +166,17 @@ Key Considerations:
 
 ###### Envelope Encryption
 
-* KMS ```Encrypt API``` call has a limit of **4KB**
+* KMS ```Encrypt API``` and ```Decrypt API``` calls have a limit of **4KB**
 * If you want to encrypt >4 KB, we need to use ```Envelope Encryption``` using ```Data Keys```
 * Data Keys are generated from CMKs. There is a direct relationship between Data Key and a CMK. However, AWS does NOT store or manage Data Keys. Instead, you have to manage them.
 * The main API that will help us is the ```GenerateDataKey``` API
 * You can use one Customer Managed Key (```CMK```) to generate thousands of unique data keys. You can generate data keys from a CMK using two methods:
   * Generate both Plaintext Data Key and Encrypted Data Key (```GenerateDataKey```)
   * Generate only the Encrypted Data Key (```GenerateDataKeyWithoutPlaintext```)
-
-* Once you get the Plaintext data key and Encrypted data key from CMK, use the Plaintext data key to encrypt your data. 
-* After encryption, never keep the Plaintext data key together with encrypted data(Ciphertext) since anyone can decrypt the Ciphertext using the Plaintext key. So remove the Plaintext data key from the memory as soon as possible. You can keep the Encrypted data key with the Ciphertext.  
+* After encryption, never keep the Plaintext data key together with Encrypted data(Ciphertext) since anyone can decrypt the Ciphertext using the Plaintext key. So remove the Plaintext data key from the memory as soon as possible. You can keep the Encrypted data key with the Ciphertext.  
 * The method of encrypting the key using another key is called ```Envelope Encryption```. By encrypting the key, that is used to encrypt data, you will protect both data and the key.
+* The whole purpose of this ```Envelope encryption``` technique is to use KMS for what it's good at, which is to generate keys,
+and then the whole encryption and decryption happens at the **client side**.
 
 ```mermaid
 sequenceDiagram
@@ -176,9 +188,16 @@ sequenceDiagram
     App->>App: Discard Plaintext Key
     App->>Storage: Store Encrypted Data + Encrypted Key
 ```
+
+1. Client invokes the ```GenerateDataKey``` API into KMS.
+2. Client gets the **Plaintext** data key and **Encrypted** data key from KMS, use the Plaintext data key to encrypt your large data on the **client side**. 
+3. Discard the **Plaintext** data key and store the **Encrypted data key** together with the **Encrypted data** together as an "Envelope"
+
 ![KMS-Envelope-Encrypt](/images/uploads/kms-envelope-encrypt.PNG)
 
-When you want to decrypt it, call the KMS API with the encrypted data key and KMS will send you the Plaintext key if you are authorized to receive it. Afterward, you can decrypt the Ciphertext using the Plaintext key.
+4. When you want to decrypt it, call the KMS ```Decrypt``` API with the encrypted data key (🤔**4KB** limit).
+5. KMS will send you the Plaintext key if you are authorized to receive it. 
+6. Afterward, you can decrypt the Ciphertext using the Plaintext key on the **client side** again.
 
 ![KMS-Envelope-Decrypt](/images/uploads/kms-envelope-decrypt.PNG)
 
@@ -189,9 +208,9 @@ When you want to decrypt it, call the KMS API with the encrypted data key and KM
 * Implementations for Java, Python, C, JavaScript
 * Feature - Data Key Caching:
 
-  * re-use data keys instead of creating new ones for each encryption
+  * Re-use data keys instead of creating new ones for each encryption
   * Helps with reducing the number of calls to KMS with a security trade-off
-  * Use LocalCryptoMaterialsCache (max age, max bytes, max number of messages)
+  * Use ```LocalCryptoMaterialsCache``` (max age, max bytes, max number of messages)
 
 ###### KMS Key Policies
 
@@ -359,32 +378,24 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
 
 * There are 4 methods of encrypting objects in S3 at rest
 
-  * SSE-S3: encrypts S3 objects using keys handled & managed by AWS
-  * SSE-KMS: leverage AWS Key Management Service to manage encryption keys
-  * SSE-C: when you want to manage your own encryption keys
-  * Client Side Encryption
+  * ```SSE-S3```: encrypts S3 objects using keys handled & managed by AWS - **AWS Owned Keys**
+  * ```SSE-KMS```: leverage AWS Key Management Service to manage encryption keys - **AWS Managed Keys**
+  * ```SSE-C```: when you want to manage your own encryption keys - key not stored in ```KMS```
+  * ```Client Side``` Encryption - key not stored in ```KMS```
 
   ###### SSE-KMS
 
-  * SSE-KMS: encryption using keys handled & managed by KMS
-  * KMS Advantages: user control + audit trail via CloudTrail
+  * ```SSE-KMS``` encryption is using keys handled & managed by KMS
   * Object is encrypted server side
   * Must set header: ```x-amz-server-side-encryption```: ”aws:kms"
-  * SSE-KMS leverages the GenerateDataKey & Decrypt KMS API calls
+  * SSE-KMS leverages the ```GenerateDataKey``` & ```Decrypt``` KMS API calls
   * These KMS API calls will show up in CloudTrail, helpful for logging
   * To perform SSE-KMS, you need:
-
-    * A KMS Key Policy that authorizes the user / role
-    * An IAM policy that authorizes access to KMS, otherwise you will get an access denied error
-  * S3 calls to KMS for SSE-KMS count against your KMS limits
-  * If throttling, try exponential backoff or you can request an increase in KMS limits
-  * The service throttling is KMS, not Amazon S3
-  * Security Policy for enforcing encryption via SSE-KMS:
-
-    Here we need to deny all requests that use the wrong encryption type, i.e. x-amz-server-side-encryption = AWS256 or an incorrect KMS key, i.e. the value of x-amz-server-side-encryption-aws-kms-key-id. A rule for that looks like this (You need to replace $BucketName, $Region, $Accountid and $KeyId):  
-
-    ```JSON
-    {
+    * A KMS ```Key Policy``` that authorizes the user / role
+    * An ```IAM policy``` that authorizes access to KMS, otherwise you will get an ```Access Denied``` error
+    * Security Policy for enforcing encryption via SSE-KMS:
+      ```JSON
+      {
         "Version": "2012-10-17",
         "Statement": [
             {
@@ -413,8 +424,21 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
                 }
             }
         ]
-    }
-    ```
+      }
+      ```
+  
+  * KMS **Pros**: User control + Audit trail via ```CloudTrail```
+  * KMS **Cons**: Each object upload typically triggers a ```GenerateDataKey``` API call to KMS, which incurs cost, latency and is rate-limited.
+    * If throttling, try exponential backoff or you can request an increase in KMS limits
+    * The service throttling is KMS, not Amazon S3
+  {{< figure src="images/uploads/aws-kms-s3-bucket-key.png" width="300" height="500" class="alignright">}}
+  * ```S3 Bucket Key``` for SSE-KMS: To circumvent these limitations AWS has introduced a ```S3 Bucket Key``` which is a **bucket-level** data key that Amazon S3 uses to reduce the number of direct calls to AWS KMS.
+  * **Auditability** — fewer KMS calls means fewer CloudTrail entries, but you still get visibility into the initial key generation.
+  * How it works:
+    1. When enabled, KMS issues a **bucket-level** key (encrypted under your CMK) for the same ```GenerateDataKey``` API call
+    2. S3 **caches** this bucket key internally for a limited time.
+    3. For subsequent object uploads, S3 uses this cached bucket key to generate per-object data keys, without calling KMS again.
+    4. The object is encrypted using the derived data key, and the metadata includes the encrypted bucket key.
 
 ## SSM ParameterStore
 
