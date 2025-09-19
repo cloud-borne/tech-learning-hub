@@ -20,7 +20,7 @@ Encryption is a critical component of a defense-in-depth strategy, which is a se
 
 There are 2 forms of encryption in practice:
 
-###### Encryption in transit🚙:
+#### Encryption in transit🚙:
 
 * Data is encrypted before sending and decrypted after receiving
 * SSL certificates help with encryption (HTTPS)
@@ -28,25 +28,25 @@ There are 2 forms of encryption in practice:
 
 ![HTTPS](/images/uploads/encryption-in-transit.PNG)
 
-###### Encryption at Rest💤:
+#### Encryption at Rest💤:
 
 * Data is encrypted after being received by the server
 * Data is decrypted before being sent
 * It is stored in an encrypted form thanks to a key (usually a data key)
 * The encryption / decryption keys must be managed somewhere and the server must have access to it.
-*  There are two main methods to encrypt data at rest:
+* There are two main methods to encrypt data at rest:
 
-   * **Client-Side** Encryption: As the name implies this method encrypts your data at the client-side before it reaches backend servers or services. You have to supply encryption keys 🔑 to encrypt the data from the client-side. You can either manage these encryption keys by yourself or use AWS KMS(Key Management Service) to manage the encryption keys under your control.
+  * **Client-Side** Encryption: As the name implies this method encrypts your data at the client-side before it reaches backend servers or services. You have to supply encryption keys 🔑 to encrypt the data from the client-side. You can either manage these encryption keys by yourself or use AWS KMS(Key Management Service) to manage the encryption keys under your control.
 
-     AWS provides multiple client-side SDKs to make this process easy for you. E.g. AWS Encryption SDK, S3 Encryption Client, DynamoDB Encryption Client etc…
+  * AWS provides multiple client-side SDKs to make this process easy for you. E.g. AWS Encryption SDK, S3 Encryption Client, DynamoDB Encryption Client etc…
 
-     ![Client-Side](/images/uploads/encryption-at-rest-client.PNG)
+  ![Client-Side](/images/uploads/encryption-at-rest-client.PNG)
 
-   * **Server-Side** Encryption: In Server-Side encryption, AWS encrypts the data on your behalf as soon as it is received by an AWS Service. Most of the AWS services support server-side encryption. E.g. S3, EBS, RDS, DynamoDB, Kinesis, etc…
+  * **Server-Side** Encryption: In Server-Side encryption, AWS encrypts the data on your behalf as soon as it is received by an AWS Service. Most of the AWS services support server-side encryption. E.g. S3, EBS, RDS, DynamoDB, Kinesis, etc…
 
-     All these services are integrated with AWS KMS in order to encrypt the data.
+  * All these services are integrated with AWS KMS in order to encrypt the data.
 
-     ![Server-Side](/images/uploads/encryption-at-rest-server.PNG)
+  ![Server-Side](/images/uploads/encryption-at-rest-server.PNG)
 
 ## 🗝️KMS
 
@@ -83,10 +83,13 @@ KMS is used to fully manage the keys & their policies:
     - 🔀**Asymmetric Keys**
          RSA or ECC key pairs  
          Used for ```Encrypt/Decrypt``` or ```Sign/Verify```
-    - 🌍**Multi-Region Capability**
-         Available for both Symmetric and Asymmetric keys  
+    - 🌍**Multi-Region**
+         Symmetric and Asymmetric keys  
          Enables **cross-region** encryption/decryption  
          Same key material, separate resource IDs
+    - 🧰**Cloud HSM**
+         Symmetric and Asymmetric keys
+         AWS provsisioned **dedicated** hardware
   - 🛠️**AWS Managed Keys**
        Created and managed by AWS  
        Always 🔁**Symmetric Keys**  
@@ -164,42 +167,79 @@ The asymmetric CMKs offer digital signature capability, which data consumers can
 4. The client forwards the data and signature to one or more ```Verifiers```, and requests access to their protected resources.
 5. The ```Verifiers``` verify the signature that is associated with the original data. The Verifiers use the Signer’s ```public key``` in this process. If the verification succeeds, meaning that the original data that was conveyed is unaltered and authentic, the ```Verifiers``` grant the client access to their protected resources.
 
-###### Envelope Encryption
+* 🌍**Multi-Region Keys**
 
-* KMS ```Encrypt API``` and ```Decrypt API``` calls have a limit of **4KB**
-* If you want to encrypt >4 KB, we need to use ```Envelope Encryption``` using ```Data Keys```
-* Data Keys are generated from CMKs. There is a direct relationship between Data Key and a CMK. However, AWS does NOT store or manage Data Keys. Instead, you have to manage them.
-* The main API that will help us is the ```GenerateDataKey``` API
-* You can use one Customer Managed Key (```CMK```) to generate thousands of unique data keys. You can generate data keys from a CMK using two methods:
-  * Generate both Plaintext Data Key and Encrypted Data Key (```GenerateDataKey```)
-  * Generate only the Encrypted Data Key (```GenerateDataKeyWithoutPlaintext```)
-* After encryption, never keep the Plaintext data key together with Encrypted data(Ciphertext) since anyone can decrypt the Ciphertext using the Plaintext key. So remove the Plaintext data key from the memory as soon as possible. You can keep the Encrypted data key with the Ciphertext.  
-* The method of encrypting the key using another key is called ```Envelope Encryption```. By encrypting the key, that is used to encrypt data, you will protect both data and the key.
-* The whole purpose of this ```Envelope encryption``` technique is to use KMS for what it's good at, which is to generate keys,
-and then the whole encryption and decryption happens at the **client side**.
+  * A set of identical KMS keys in different AWS Regions that can be used interchangeably (~ same KMS key in multiple Regions)
+  * Encrypt in one Region and decrypt in other Regions (No need to re-encrypt or making cross-Region API calls)
+  * ```Multi-Region``` keys have the same ```Key ID```, key material, automatic rotation, …
+  * KMS Multi-Region are **NOT** global (**Primary** + **Replicas**)
+  * Each Multi-Region key is managed **independently**
+  * Only **one** primary key at a time, can promote replicas into their own primary
+  * 🧠Use cases: Disaster Recovery, Global Data Management (e.g., DynamoDB Global Tables), Active-Active Applications that span multiple Regions, Distributed Signing applications
 
-```mermaid
-sequenceDiagram
-    participant App
-    participant KMS
-    App->>KMS: GenerateDataKey
-    KMS-->>App: Plaintext Key + Encrypted Key
-    App->>App: Encrypt data with Plaintext Key
-    App->>App: Discard Plaintext Key
-    App->>Storage: Store Encrypted Data + Encrypted Key
-```
+    ![KMS-Multi-Region](/images/uploads/aws-kms-multi-region-key.png)
 
-1. Client invokes the ```GenerateDataKey``` API into KMS.
-2. Client gets the **Plaintext** data key and **Encrypted** data key from KMS, use the Plaintext data key to encrypt your large data on the **client side**. 
-3. Discard the **Plaintext** data key and store the **Encrypted data key** together with the **Encrypted data** together as an "Envelope"
+* 📥KMS Key Source - External (**BYOK**)
+  * Import your own key material into KMS key, Bring Your Own Key (```BYOK```)
+  * You’re responsible for key material’s security, availability, and durability outside of AWS
+  * Supports **only** ```Symmetric``` KMS keys
+  * Manually rotate your KMS key (Automatic & On-demand Key Rotation are NOT supported)
+{{% callout note %}} 
+- AWS KMS enforces strict controls to ensure private keys remain secure and non-exportable.
+- Allowing ```Asymmetric``` key import would break the trust model where KMS guarantees the private key never leaves its boundary.
+{{% /callout %}}
 
-![KMS-Envelope-Encrypt](/images/uploads/kms-envelope-encrypt.PNG)
+  ![KMS-BYOK](/images/uploads/aws-kms-byok.png)
 
-4. When you want to decrypt it, call the KMS ```Decrypt``` API with the encrypted data key (🤔**4KB** limit).
-5. KMS will send you the Plaintext key if you are authorized to receive it. 
-6. Afterward, you can decrypt the Ciphertext using the Plaintext key on the **client side** again.
+* 🧰**CloudHSM**
+  
+  {{< figure src="images/uploads/aws-kms-cloudhsm.png" width="300" height="500" class="alignright">}}
+  * CloudHSM => **AWS** provisions encryption **hardware**
+  * **Dedicated** Hardware (HSM = Hardware Security Module)
+  * **You** manage your own encryption keys entirely (not AWS)
+  * HSM device is tamper resistant, FIPS 140-2 Level 3 compliance
+  * Supports both ```symmetric``` and ```asymmetric``` encryption (SSL/TLS keys)
+  * **No free tier** available
+  * Must use the CloudHSM Client Software
+  * Redshift supports CloudHSM for database encryption and key management
+  * Good option to use with SSE-C encryption
 
-![KMS-Envelope-Decrypt](/images/uploads/kms-envelope-decrypt.PNG)
+* 📨**Envelope Encryption**
+
+  * KMS ```Encrypt API``` and ```Decrypt API``` calls have a limit of **4KB**
+  * If you want to encrypt >4 KB, we need to use ```Envelope Encryption``` using ```Data Keys```
+  * Data Keys are generated from CMKs. There is a direct relationship between Data Key and a CMK. However, AWS does NOT store or manage Data Keys. Instead, you have to manage them.
+  * The main API that will help us is the ```GenerateDataKey``` API
+  * You can use one Customer Managed Key (```CMK```) to generate thousands of unique data keys. You can generate data keys from a CMK using two methods:
+    * Generate both Plaintext Data Key and Encrypted Data Key (```GenerateDataKey```)
+    * Generate only the Encrypted Data Key (```GenerateDataKeyWithoutPlaintext```)
+  * After encryption, never keep the Plaintext data key together with Encrypted data(Ciphertext) since anyone can decrypt the Ciphertext using the Plaintext key. So remove the Plaintext data key from the memory as soon as possible. You can keep the Encrypted data key with the Ciphertext.  
+  * The method of encrypting the key using another key is called ```Envelope Encryption```. By encrypting the key, that is used to encrypt data, you will protect both data and the key.
+  * The whole purpose of this ```Envelope encryption``` technique is to use KMS for what it's good at, which is to generate keys,
+  and then the whole encryption and decryption happens at the **client side**.
+
+  ```mermaid
+  sequenceDiagram
+      participant App
+      participant KMS
+      App->>KMS: GenerateDataKey
+      KMS-->>App: Plaintext Key + Encrypted Key
+      App->>App: Encrypt data with Plaintext Key
+      App->>App: Discard Plaintext Key
+      App->>Storage: Store Encrypted Data + Encrypted Key
+  ```
+
+  1. Client invokes the ```GenerateDataKey``` API into KMS.
+  2. Client gets the **Plaintext** data key and **Encrypted** data key from KMS, use the Plaintext data key to encrypt your large data on the **client side**. 
+  3. Discard the **Plaintext** data key and store the **Encrypted data key** together with the **Encrypted data** together as an "Envelope"
+
+  ![KMS-Envelope-Encrypt](/images/uploads/kms-envelope-encrypt.PNG)
+
+  4. When you want to decrypt it, call the KMS ```Decrypt``` API with the encrypted data key (🤔**4KB** limit).
+  5. KMS will send you the Plaintext key if you are authorized to receive it. 
+  6. Afterward, you can decrypt the Ciphertext using the Plaintext key on the **client side** again.
+
+  ![KMS-Envelope-Decrypt](/images/uploads/kms-envelope-decrypt.PNG)
 
 ###### Encryption SDK
 
@@ -440,7 +480,7 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
     3. For subsequent object uploads, S3 uses this cached bucket key to generate per-object data keys, without calling KMS again.
     4. The object is encrypted using the derived data key, and the metadata includes the encrypted bucket key.
 
-## SSM ParameterStore
+## 🔗SSM ParameterStore
 
 {{< figure src="images/uploads/ssm-parameter-store.PNG" width="300" height="500" class="alignright">}}
 * Secure storage for configuration and secrets

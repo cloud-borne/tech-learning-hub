@@ -72,7 +72,7 @@ markup:
   _merge: deep
   tableOfContents:
     startLevel: 2
-    endLevel: 5
+    endLevel: 3
 related:
   threshold: 80
   includeNewer: true

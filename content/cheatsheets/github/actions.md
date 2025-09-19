@@ -535,7 +535,7 @@ jobs:
 
 ## Concurrency
 
-TL'DR:
+🔣TL'DR:
 
 Say we are trying to do a build and deploy with every commit and we push two or more commits to the code repository within a quick sequence of time frame?  Both commits will trigger the GitHub Actions workflow and successfully run the “Build” and “Publish” steps. But the workflow run that was triggered second will fail in the “Deploy” step because CDK/CloudFormation will detect that another deployment is currently in progress. The second workflow run will have to be manually triggered again once the deployment has finished. A lot of workflow runs will fail and there is no guarantee that a commit will be deployed promptly.
 
