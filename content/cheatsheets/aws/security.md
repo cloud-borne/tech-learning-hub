@@ -416,12 +416,46 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
 
 ###### S3 Encryption for Objects
 
-* There are 4 methods of encrypting objects in S3 at rest
+* There are 4 methods of encrypting objects in S3 at **rest**
 
   * ```SSE-S3```: encrypts S3 objects using keys handled & managed by AWS - **AWS Owned Keys**
   * ```SSE-KMS```: leverage AWS Key Management Service to manage encryption keys - **AWS Managed Keys**
-  * ```SSE-C```: when you want to manage your own encryption keys - key not stored in ```KMS```
+  * ```SSE-C```: when you want to manage your own encryption keys - key not stored in ```KMS```. **CloudHSM** could be used
   * ```Client Side``` Encryption - key not stored in ```KMS```
+  * ```Glacier```: all data is **AES-256** encrypted, key under AWS control
+
+* Encryption in **transit** (```SSL/TLS```)
+
+  - Every S3 bucket and object is accessible via:
+    - **HTTP**: http://bucket-name.s3.amazonaws.com
+    - **HTTPS**: https://bucket-name.s3.amazonaws.com
+  - These endpoints are globally available and automatically provisioned by AWS.
+  - You’re free to use the endpoint you want, but HTTPS is recommended
+  - HTTPS is mandatory for ```SSE-C```
+  - To enforce HTTPS, use a Bucket Policy with a ```ws:SecureTransport```
+
+  ```json
+  {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "AllowSSLRequestsOnly",
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": "s3:*",
+        "Resource": [
+          "arn:aws:s3:::your-bucket-name",
+          "arn:aws:s3:::your-bucket-name/*"
+        ],
+        "Condition": {
+          "Bool": {
+            "aws:SecureTransport": "false"
+          }
+        }
+      }
+    ]
+  }
+  ```
 
   ###### SSE-KMS
 
@@ -429,6 +463,7 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
   * Object is encrypted server side
   * Must set header: ```x-amz-server-side-encryption```: ”aws:kms"
   * SSE-KMS leverages the ```GenerateDataKey``` & ```Decrypt``` KMS API calls
+  * Even if S3 bucket/objects were made **public**, if it's encrypted with ```SSE-KMS```, they can never be read. Because a public **anonymous** user will **never** have access to ```KMS key```.
   * These KMS API calls will show up in CloudTrail, helpful for logging
   * To perform SSE-KMS, you need:
     * A KMS ```Key Policy``` that authorizes the user / role
@@ -483,13 +518,14 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
 ## 🔗SSM ParameterStore
 
 {{< figure src="images/uploads/ssm-parameter-store.PNG" width="300" height="500" class="alignright">}}
+
 * Secure storage for configuration and secrets
 * Optional Seamless Encryption using KMS
-* Serverless, scalable, durable, easy SDK
+* ```Serverless```, scalable, durable, easy SDK
 * Version tracking of configurations / secrets
-* Configuration management using path & IAM
-* Notifications with CloudWatch Events
-* Integration with CloudFormation
+* Configuration management using path & ```IAM```
+* Notifications with Amazon ```EventBridge```
+* Integration with ```CloudFormation```
 * SSM Parameter Store Hierarchy
 
   * /my-department/
@@ -502,36 +538,116 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
         * db-password
     * other-app/
   * /other-department/
-  * /aws/reference/secretsmanager/secret_ID_in_Secrets_Manager
-  * /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+* **Standard** and **Advanced** parameter tiers
 
-## Secrets Manager
+  | **Characteristics**                                             | **Standard** | **Advanced**                              |
+  |-----------------------------------------------------------------|--------------|-------------------------------------------|
+  | Total number of parameters allowed (per AWS account and Region) | 10,000       | 100,000                                   |
+  | Maximum size of a parameter value                               | 4 KB         | 8 KB                                      |
+  | Parameter policies available                                    | No           | Yes                                       |
+  | Cost                                                            | Free         | $0.05 per advanced parameter per month    |
 
-* Newer service, meant for storing secrets
-* Capability to force rotation of secrets every X days
-* Automate generation of secrets on rotation (uses Lambda)
-* Integration with Amazon RDS (MySQL, PostgreSQL, Aurora)
-* Secrets are encrypted using KMS
-* Mostly meant for RDS integration
+* Here's some examples of SSM **Advanced** Parameter Polcies
+  ![SSM-Policies](/images/uploads/aws-kms-ssm-policies.png)
 
-## Secrets Manager vs. SSM ParameterStore
+###### SSM Public Parameters
 
-* **Secrets Manager ($$$)**
+SSM public parameters are **read-only**, globally available parameters published by AWS under the ```/aws/service/``` namespace. They’re designed to:
+- ✅ Avoid hardcoding resource IDs (e.g., AMI IDs)
+- 🔄 Auto-update when AWS releases new versions
+- 🌍 Support multi-region deployments seamlessly
+- 🔐 Enable secure referencing of secrets via SSM syntax
+They’re especially useful in CloudFormation, CDK, Terraform, and CI/CD pipelines where you want modular, future-proof infrastructure.
 
-  * Automatic rotation of secrets with AWS Lambda
-  * Integration with RDS, Redshift, DocumentDB
-  * KMS encryption is mandatory
-  * Can integration with CloudFormation
+- Here's a list of common examples:
 
-* **SSM ParameterStore ($)**
+| Parameter Category | Example Full Parameter Path                                                           | Usage / Description                                                                                                                |
+|--------------------|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| Amazon Linux       | /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2                         | Retrieves the AMI ID for the latest Amazon Linux 2 with HVM virtualization for an x86_64 architecture using a GP2 root volume.     |
+| Windows Server     | /aws/service/ami-windows-latest/Windows_Server-2022-English-Full-Base                 | Gets the AMI ID for the base image of Microsoft Windows Server 2022 (English, Full installation).                                  |
+| ECS-Optimized      | /aws/service/ecs/optimized-ami/amazon-linux-2/recommended                             | Fetches the recommended AMI ID for running Amazon ECS container instances on an Amazon Linux 2 base.                               |
+| EKS-Optimized      | /aws/service/eks/optimized-ami/1.30/amazon-linux-2/recommended                        | Provides the recommended AMI ID for an Amazon EKS worker node compatible with Kubernetes version 1.30 on Amazon Linux 2.           |
+| Deep Learning      | /aws/service/deep-learning-amis/latest/ubuntu-22.04                                   | Finds the latest Deep Learning AMI based on Ubuntu 22.04, pre-packaged with popular machine learning frameworks.                   |
+| RDS Custom         | /aws/service/rds/optimized-ami/oracle-ee/19.21.0.0.ru-2023-10.rur-2023-10.r1/x86_64/1 | Stores the AMI ID for a specific version of Amazon RDS Custom for Oracle Enterprise Edition, ensuring a compatible OS environment. |
 
-  * Simple API
-  * No secret rotation
-  * KMS encryption is optional
-  * Can integration with CloudFormation
-  * Can pull a Secrets Manager secret using the SSM Parameter Store API
 
-## Further Read
+## 🗄️Secrets Manager
 
-[How to use AWS KMS RSA keys for offline encryption](https://aws.amazon.com/blogs/security/how-to-use-aws-kms-rsa-keys-for-offline-encryption/)
-[How to verify AWS KMS signatures in decoupled architectures at scale](https://aws.amazon.com/blogs/security/how-to-verify-aws-kms-signatures-in-decoupled-architectures-at-scale/)
+{{< figure src="images/uploads/aws-ssm-secrets-manager.png" width="200" height="300" class="alignright">}}
+
+* Meant for storing secrets (e.g., passwords, API keys)
+* Capability to **force rotation** of secrets every X days
+  * Automate generation of secrets on rotation (uses ```Lambda```)
+  * Natively supports Amazon ```RDS``` (all supported DB engines), Redshift, DocumentDB
+  * Support other databases and services (custom Lambda function)
+* Control access to secrets using ```Resource-based``` Policy
+* Integration with other AWS services to natively, pull secrets from ```Secrets Manager```: CloudFormation, CodeBuild, ECS, EMR, Fargate, EKS, Parameter Store…
+
+###### Secrets Manager – with CloudFormation
+![SSM-Secrets-Manager](/images/uploads/aws-ssm-secrets-manager-cloudformation.png)
+
+###### Secrets Manager – Cross Account
+
+1. Account B must be allowed to ```decrypt``` the secret in Account A. 
+
+    KMS ```Key Policy``` in Account A:
+
+    ```json
+    {
+      "Sid": "AllowAccountBToDecrypt",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::<AccountB-ID>:role/<RoleName>"
+      },
+      "Action": [
+        "kms:Decrypt",
+        "kms:DescribeKey"
+      ],
+      "Resource": "*"
+    }
+    ```
+2. Attach a ```Resource-Based``` Policy to the Secret:
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "AllowAccountBToAccessSecret",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "arn:aws:iam::<AccountB-ID>:root"
+          },
+          "Action": [
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:DescribeSecret"
+          ],
+          "Resource": "*"
+        }
+      ]
+    }
+    ```
+    ![SSM-Secrets-Manager-Cross-Account](/images/uploads/aws-ssm-secrets-manager-cross-account.png)
+
+## 🆚Secrets Manager vs. SSM ParameterStore
+
+{{< tabs name="Secrets Manager vs SSM ParameterStore" >}}
+{{% tab name="Secrets Manager" %}}
+* Automatic rotation of secrets with AWS Lambda
+* Integration with RDS, Redshift, DocumentDB
+* KMS encryption is mandatory
+* Can integration with CloudFormation
+{{% /tab %}}
+{{% tab name="SSM ParameterStore ($)" %}}
+* Simple API
+* No secret rotation
+* KMS encryption is optional
+* Can integration with CloudFormation
+* Can pull a Secrets Manager secret using the SSM Parameter Store API
+{{% /tab %}}
+{{< /tabs >}}
+
+## 📖Further Read
+
+- [How to use AWS KMS RSA keys for offline encryption](https://aws.amazon.com/blogs/security/how-to-use-aws-kms-rsa-keys-for-offline-encryption/)
+- [How to verify AWS KMS signatures in decoupled architectures at scale](https://aws.amazon.com/blogs/security/how-to-verify-aws-kms-signatures-in-decoupled-architectures-at-scale/)

@@ -1,6 +1,6 @@
 ---
 title: Lambda
-linktitle: λ Lambda
+linktitle:  λ Lambda
 type: book
 tags:
   - AWS
