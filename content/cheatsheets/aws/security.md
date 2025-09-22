@@ -372,7 +372,7 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
 }
 ```
 
-- 🔐 Isolated CMK (```Untrusted Zone```): If CMK sharing isn't allowed, the target account must copy the snapshot using its own CMK. AWS securely decrypts and re-encrypts the data during transfer. For **Isolated** CMK, the target account IAM Role must allow ```ec2:CopySnapshot``` and ```kms:Encrypt``` using the target CMK.
+- 🔐 Isolated CMK (```Untrusted Zone```): If CMK sharing isn't allowed, the target account must copy the snapshot using its own CMK. AWS securely decrypts and re-encrypts the data during transfer. For **Isolated** CMK, the target account ```IAM Role``` must allow ```ec2:CopySnapshot``` and ```kms:Encrypt``` using the target CMK.
 
 ```json
 {
@@ -416,7 +416,7 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
 
 ###### S3 Encryption for Objects
 
-* There are 4 methods of encrypting objects in S3 at **rest**
+* There are several methods of encrypting objects in S3 at **rest**
 
   * ```SSE-S3```: encrypts S3 objects using keys handled & managed by AWS - **AWS Owned Keys**
   * ```SSE-KMS```: leverage AWS Key Management Service to manage encryption keys - **AWS Managed Keys**
