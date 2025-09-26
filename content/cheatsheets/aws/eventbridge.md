@@ -14,7 +14,7 @@ Eventing in AWS
 
 <!--more-->
 
-## Overview
+## 🔎Overview
 
 Amazon EventBridge is a service that offers us a **serverless** event bus with ```real-time``` access to changes in our AWS environments, custom applications, or third-party SaaS vendors.
 
@@ -190,7 +190,7 @@ By decoupling:chains: your services, they are only aware of the **event router**
 
 An event router acts as a centralized location to audit🕵 your application and define policies. These policies can restrict who can publish and subscribe to a router and control which users and resources have permission to access your data.
 
-## Further Read
+## 📖Further Read
 
 https://aws.amazon.com/blogs/compute/introducing-amazon-eventbridge-scheduler/
 https://dev.to/deeheber/eventbridge-emoji-event-patterns-53h4

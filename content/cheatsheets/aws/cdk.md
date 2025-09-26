@@ -14,7 +14,7 @@ AWS Cloud Development Kit (CDK)
 
 <!--more-->
 
-## Overview
+## 🔎Overview
 
 CDK acts as an abstraction on top of Cloud Formation Templates that allows developers to use actual declarative languages (Java, JavaScript, Python, TypeScript and .NET are currently supported) to define their cloud infrastructure. The CDK stack file is translated to Cloud Formation which is then used to create your stack. This way, we have a real ```Infrastructure As Code``` solution and don’t have to handle CloudFormation files in YAML or JSON anymore. 
 
@@ -710,7 +710,7 @@ With the AWS CDK, you can test your infrastructure in the same way as any other 
 
 AWS CDK ships with an ```assert``` library (@aws-cdk/assert) that simplifies making assertions on your infrastructure. All constructs in the AWS Constructs library use the assert library to ensure that the constructs perform as expected.   
 
-## Further Read
+## 📖Further Read
 
 * You can learn more of CDK from the 🐎 mouth here: https://docs.aws.amazon.com/cdk/v2/guide/home.html
 * “API Reference” in the AWS CDK Reference Guide: https://docs.aws.amazon.com/cdk/api/v2/

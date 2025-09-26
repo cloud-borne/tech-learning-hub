@@ -14,7 +14,7 @@ AWS infrastructure via CloudFormation
 
 <!--more-->
 
-## Overview
+## 🔎Overview
 
 ![AWS-CloudFormation](/images/uploads/cloudformation.png)
 

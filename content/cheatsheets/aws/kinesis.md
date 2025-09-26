@@ -13,7 +13,7 @@ Work with Real-Time Streaming Data
 
 <!--more-->
 
-## Overview
+## 🔎Overview
 
 Amazon Kinesis makes it easy to collect, process, and analyze real-time, streaming data so you can get timely insights and react quickly to new information.
 ![Kinesis-Overview](/images/uploads/kinesis-overview.PNG)

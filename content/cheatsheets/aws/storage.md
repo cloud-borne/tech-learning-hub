@@ -143,7 +143,7 @@ Amazon Elastic File System (EFS) is a scalable cloud file storage solution for u
   * The InstanceStore size is determined by the Instance type. You can’t resize the instance store.
   * Backups must be operated by the user
 
-## More reading
+## 📖Further Read
 
 👉 [Making an Amazon EBS volume available for use on Linux](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html)
 

@@ -13,7 +13,7 @@ AWS VPC & Networking
 
 <!--more-->
 
-## Overview
+## 🔎Overview
 
 A foundational networking service in AWS is the Amazon Virtual Private Cloud (Amazon VPC). It is a ```software-defined``` virtual private network. It is a service that you use to create secure private networks in AWS to host your applications and data. Your private services will run from this Amazon VPC. You can also connect your Amazon VPCs from your AWS private network to your on premises, creating a hybrid environment. 
 
@@ -352,7 +352,7 @@ If you need to ensure consistent AZ usage across accounts (e.g., for multi-accou
 
 ## Transit Gateway
 
-## Futher Read
+## 📖Futher Read
 
 - [AWS Whitepaper - Connectivity models](https://docs.aws.amazon.com/whitepapers/latest/hybrid-connectivity/connectivity-models.html)
 - [How NAT Gateway works](https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html)

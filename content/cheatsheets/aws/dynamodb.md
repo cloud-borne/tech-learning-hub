@@ -13,7 +13,7 @@ Managed NoSQL Database
 
 <!--more-->
 
-## Overview
+## 🔎Overview
 
 DynamoDB is Amazon’s NoSQL solution promising “performance at any scale”.
 It can be used as a key-value store or as a document store for billions of datasets

@@ -13,7 +13,7 @@ Tips and Tricks
 
 <!--more-->
 
-## Overview
+## 🔎Overview
 
 The AWS CLI is a **beast💪** of a command-line interface that provides commands for many and many different AWS services (**224** at the time of this writing).
 
@@ -594,7 +594,7 @@ Deploy your package:
   --capabilities CAPABILITY_IAM
   ```
 
-## Also see
+## 📖Futher Read
 
 * [AWS CLI](https://aws.amazon.com/cli/)
 * [Documentation](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html)

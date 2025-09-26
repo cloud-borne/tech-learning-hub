@@ -1,6 +1,6 @@
 ---
 title: Lambda
-linktitle:  λ Lambda
+linktitle: (λ) Lambda
 type: book
 tags:
   - AWS
@@ -13,7 +13,7 @@ Run Code Serverless
 
 <!--more-->
 
-## Overview
+## 🔎Overview
 
 * Lambda is a compute service where you can upload your code and create a lambda function. AWS Lambda takes care of the provisioning and managing the servers that you use to run your code
   so you don't have to worry about operating systems patching scaling etc. You can use lambda in the following ways:
@@ -67,7 +67,7 @@ Run Code Serverless
   > * The Lambda console shows all event sources for a given function.
   > * When you select Test from the Lambda console, it always invokes your Lambda function synchronously.
 
-### Push Events
+#### Push Events
 
   * ```Synchronous``` vs. ```Asynchronous``` event sources
 
@@ -116,7 +116,7 @@ Run Code Serverless
 
 Checkout CLI references here: [Lambda-CLI]({{< ref "/cheatsheets/aws/aws-cli.md#lambda" >}} "Lambda-CLI")
 
-### Polling Events
+#### Polling Events
 
   * Three services use the polling model: ```DynamoDB Streams```, ```Kinesis``` and ```SQS```.
   * In this model the events put information onto the **stream** or **queue** respectively.
@@ -305,7 +305,7 @@ With Lambda, you can use the language and IDE that you are most familiar with an
 
   In the below sections we will describe few of the tools available to help you monitor and troubleshoot your Lambda functions.
 
-  ### CloudWatch Metrics
+  #### CloudWatch Metrics
 
   CloudWatch provides 7 metrics out of the box for lambda functions to help you identify at a high level how your functions are performing, errors being generated, and the overall health of your application:
 
@@ -317,7 +317,7 @@ With Lambda, you can use the language and IDE that you are most familiar with an
   * ConcurrentExecutions - Measures the sum of concurrent executions for a given function at a given point in time. Must be viewed as an average metric if aggregated across a time period.
   * UnreservedConcurrentExecutions - Represents the sum of the concurrency of the functions that do not have a custom concurrency limit specified. Must be viewed as an average metric if aggregated across a time period.
 
-  ### CloudTrail Logs
+  #### CloudTrail Logs
 
   Logs API calls made by or on behalf of a function
 
@@ -326,7 +326,7 @@ With Lambda, you can use the language and IDE that you are most familiar with an
   * Export for additional analysis
   * CloudTrail can be an important tool for auditing serverless deployments and rolling back unplanned deployments.
 
-  ### Dead Letter Queues
+  #### Dead Letter Queues
 
   Dead Letter Queues (```DLQs```) help you capture application errors that you cannot just discard but must respond to.
 
@@ -334,7 +334,7 @@ With Lambda, you can use the language and IDE that you are most familiar with an
   * Available for **asynchronous** and **non-stream** polling events
   * Can be an Amazon ```SNS``` topic or Amazon ```SQS``` queue
 
-  ### X-Ray
+  #### X-Ray
 
   * AWS ```X-Ray``` is a service that collects data about your requests that your application serves and it provides you with tools you can use to view filter and gain insights into that data to identify issues and opportunities for optimization. 
 
@@ -376,7 +376,7 @@ With Lambda, you can use the language and IDE that you are most familiar with an
 * Lambda will create an ```ENI``` (Elastic Network Interface) in your subnets.
 * Lambda would need ```AWSLambdaVPCAccessExecutionRole``` to be able to create ENI
 
-### Lambda in VPC – Internet Access
+#### Lambda in VPC – Internet Access
 
 * A Lambda function in your VPC does not have **internet** access
 * Deploying a Lambda function in a **public** subnet does not give it internet access or a public IP
@@ -388,7 +388,8 @@ With Lambda, you can use the language and IDE that you are most familiar with an
 
 
 {{< figure src="images/uploads/lambda-cft-inline.png" class="alignright">}}
-### Lambda and CloudFormation
+
+## Lambda and CloudFormation
 
 * You could define your Lambda function in a CloudFormation template **inline**. Functions have to be simple. (Cannot include function **dependencies** with inline functions)
 * Use the ```Code.ZipFile``` property
@@ -399,6 +400,6 @@ With Lambda, you can use the language and IDE that you are most familiar with an
 * If you update the code in S3, but don’t update S3Bucket, S3Key or S3ObjectVersion, CloudFormation won’t update your function
 {{< figure src="images/uploads/lambda-cft-s3.png" width="500" height="500">}}
 
-
+## 📖Further Read
 
 
