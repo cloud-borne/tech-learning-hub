@@ -699,3 +699,4 @@ They’re especially useful in CloudFormation, CDK, Terraform, and CI/CD pipelin
 
 - [How to use AWS KMS RSA keys for offline encryption](https://aws.amazon.com/blogs/security/how-to-use-aws-kms-rsa-keys-for-offline-encryption/)
 - [How to verify AWS KMS signatures in decoupled architectures at scale](https://aws.amazon.com/blogs/security/how-to-verify-aws-kms-signatures-in-decoupled-architectures-at-scale/)
+- [OSI Model Security with AWS Services](https://newmathdata.com/blog/osi-model-aws-security-defense-in-depth-guide/)
