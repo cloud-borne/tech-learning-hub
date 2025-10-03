@@ -14,6 +14,28 @@ Security Fundamentals in AWS
 
 <!--more-->
 
+## 🔎Overview
+
+Security in AWS is a **layered** discipline - the [OSI Model](https://en.wikipedia.org/wiki/OSI_model) offers a clear way to think about where and how to apply security controls. 
+
+![OSI-Layers](/images/uploads/aws-osi-layers-security.png)
+
+This cheatsheet maps the seven layers of the ```OSI model``` to AWS services that help implement **defense-in-depth**. 
+
+## 📱Layer 7: Application
+
+## 🧬Layer 6: Presentation
+
+## 🗪 Layer 5: Session
+
+## 🚦Layer 4: Transport
+
+## 🌐Layer 3: Network
+
+## 🔢Layer 2: Data Link
+
+## 🏢Layer 1: Physical
+
 ## 🔐Encryption
 
 Encryption is a critical component of a defense-in-depth strategy, which is a security approach adopted by AWS with a series of defensive mechanisms designed so that if one security mechanism fails, there’s at least one more still operating.
@@ -646,6 +668,32 @@ They’re especially useful in CloudFormation, CDK, Terraform, and CI/CD pipelin
 * Can pull a Secrets Manager secret using the SSM Parameter Store API
 {{% /tab %}}
 {{< /tabs >}}
+
+## 🚨DDOS Attack
+
+![DDOS](/images/uploads/aws-ddos-attack.png)
+
+* Distributed Denial of Service (```DDoS```):
+  * When your service is unavailable because it’s receiving too many requests
+  * ```SYN Flood``` (Layer 4): send too many TCP connection requests
+  * ```UDP Reflection``` (Layer 4): get other servers to send many big UDP requests
+  * ```DNS flood``` attack: overwhelm the DNS so legitimate users can’t find the site
+  * ```Slow Loris``` attack: a lot of HTTP connections are opened and maintained
+* Application level attacks:
+  * more complex, more specific (HTTP level)
+  * Cache bursting strategies: overload the backend database by invalidating cache
+
+## 🛡️AWS Shield
+
+## 🧱AWS WAF
+
+## 🧑‍💻AWS Firewall Manager
+
+## ⚙️AWS Config
+
+## 🕵️AWS Inspector
+
+## 💂AWS GuardDuty
 
 ## 📖Further Read
 
