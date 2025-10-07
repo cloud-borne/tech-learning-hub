@@ -24,25 +24,196 @@ This cheatsheet maps the seven layers of the ```OSI model``` to AWS services tha
 
 ## 📱Layer 7: Application
 
+```Layer 7``` is where user-facing applications operate (e.g., **HTTP**, **HTTPS**, **DNS**, **SMTP**). Security at this layer is critical because it directly interacts with users and is often the most targeted by attackers.
+
+* ⚠️ Common Threats at ```Layer 7```
+
+| 🚨 **Threat**               | 📝 **Description**                                                                 |
+|----------------------------|------------------------------------------------------------------------------------|
+| [SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection) | Malicious SQL queries to manipulate or access databases.                          |
+| [Cross Site Scripting](https://owasp.org/www-community/attacks/xss/) | Injecting malicious scripts into web pages viewed by other users.              |
+| [Cross-Site Request Forgery(CSRF)](https://owasp.org/www-community/attacks/csrf) | Tricks users into executing unwanted actions on a web app.         |
+| [Code Injection](https://owasp.org/www-community/attacks/Code_Injection) | Exploiting vulnerabilities to run arbitrary code on the server.             |
+| **API Abuse**              | Excessive or malformed API calls to disrupt or exploit services.                  |
+| [DDOS](https://owasp.org/www-community/attacks/Denial_of_Service) | Flooding application endpoints with high-volume traffic.                          |
+| [Broken Authentication](https://owasp.org/www-project-top-ten/2017/A2_2017-Broken_Authentication)  | Exploiting weak session or credential handling mechanisms.                        |
+| [Sensitive Data Exposure](https://owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure) | Insecure transmission or storage of personal or confidential data.                |
+
+
+#### 🧱AWS WAF
+
+* Protects your web applications from common web exploits (```Layer 7```)
+* Deploy on Application Load Balancer (```ALB```) (localized rules)
+* Deploy on ```API Gateway``` (rules running at the **regional** or **edge-level**)
+* Deploy on ```CloudFront``` (rules **globally** on **edge-locations**)
+* Used to front other solutions: ```CLB```, ```EC2``` instances, custom origins, ```S3``` websites
+* Deploy on ```AppSync``` (protect your **GraphQL** APIs)
+* ```WAF``` is not for **DDoS** protection
+* Define **Web ACL** (Web Access Control List):
+
+* Library of over 190 managed rules
+* Ready-to-use rules that are managed by AWS and AWS Marketplace Sellers
+  * **Baseline Rule Groups** – general protection from common threats
+  ```AWSManagedRulesCommonRuleSet```, ```AWSManagedRulesAdminProtectionRuleSet```, …
+  * **Use-case Specific Rule Groups** – protection for many AWS WAF use cases
+  ```AWSManagedRulesSQLiRuleSet```, ```AWSManagedRulesWindowsRuleSet```,
+```AWSManagedRulesPHPRuleSet```, ```AWSManagedRulesWordPressRuleSet```, …
+  * **IP Reputation Rule Groups** – block requests based on source (e.g., malicious
+IPs)
+  ```AWSManagedRulesAmazonIpReputationList```, ```AWSManagedRulesAnonymousIpList```
+  * **Bot Control Managed Rule Group **– block and manage requests from bots
+  ```AWSManagedRulesBotControlRuleSet```
+* Rules can include IP addresses, HTTP headers, HTTP body, or URI strings
+* Protects from common attack - [SQL injection](https://owasp.org/www-community/attacks/SQL_Injection) and [Cross-Site Scripting (XSS)](https://owasp.org/www-community/attacks/xss/)
+* Size constraints, Geo match
+* Rate-based rules (to count occurrences of events)
+* Rule Actions: **Count** | **Allow** | **Block** | **CAPTCHA Challenge**
+
+#### 🕵️AWS Inspector
+
+#### 💂AWS GuardDuty
+
+#### 🔗SSM ParameterStore
+
+{{< figure src="images/uploads/ssm-parameter-store.PNG" width="300" height="500" class="alignright">}}
+
+* Secure storage for configuration and secrets
+* Optional Seamless Encryption using KMS
+* ```Serverless```, scalable, durable, easy SDK
+* Version tracking of configurations / secrets
+* Configuration management using path & ```IAM```
+* Notifications with Amazon ```EventBridge```
+* Integration with ```CloudFormation```
+* SSM Parameter Store Hierarchy
+
+  * /my-department/
+    * my-app/
+      * dev/
+        * db-url
+        * db-password
+      * prod/
+        * db-url
+        * db-password
+    * other-app/
+  * /other-department/
+* **Standard** and **Advanced** parameter tiers
+
+  | **Characteristics**                                             | **Standard** | **Advanced**                              |
+  |-----------------------------------------------------------------|--------------|-------------------------------------------|
+  | Total number of parameters allowed (per AWS account and Region) | 10,000       | 100,000                                   |
+  | Maximum size of a parameter value                               | 4 KB         | 8 KB                                      |
+  | Parameter policies available                                    | No           | Yes                                       |
+  | Cost                                                            | Free         | $0.05 per advanced parameter per month    |
+
+* Here's some examples of SSM **Advanced** Parameter Polcies
+  ![SSM-Policies](/images/uploads/aws-kms-ssm-policies.png)
+
+###### SSM Public Parameters
+
+SSM public parameters are **read-only**, globally available parameters published by AWS under the ```/aws/service/``` namespace. They’re designed to:
+- ✅ Avoid hardcoding resource IDs (e.g., AMI IDs)
+- 🔄 Auto-update when AWS releases new versions
+- 🌍 Support multi-region deployments seamlessly
+- 🔐 Enable secure referencing of secrets via SSM syntax
+They’re especially useful in CloudFormation, CDK, Terraform, and CI/CD pipelines where you want modular, future-proof infrastructure.
+
+- Here's a list of common examples:
+
+| Parameter Category | Example Full Parameter Path                                                           | Usage / Description                                                                                                                |
+|--------------------|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| Amazon Linux       | /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2                         | Retrieves the AMI ID for the latest Amazon Linux 2 with HVM virtualization for an x86_64 architecture using a GP2 root volume.     |
+| Windows Server     | /aws/service/ami-windows-latest/Windows_Server-2022-English-Full-Base                 | Gets the AMI ID for the base image of Microsoft Windows Server 2022 (English, Full installation).                                  |
+| ECS-Optimized      | /aws/service/ecs/optimized-ami/amazon-linux-2/recommended                             | Fetches the recommended AMI ID for running Amazon ECS container instances on an Amazon Linux 2 base.                               |
+| EKS-Optimized      | /aws/service/eks/optimized-ami/1.30/amazon-linux-2/recommended                        | Provides the recommended AMI ID for an Amazon EKS worker node compatible with Kubernetes version 1.30 on Amazon Linux 2.           |
+| Deep Learning      | /aws/service/deep-learning-amis/latest/ubuntu-22.04                                   | Finds the latest Deep Learning AMI based on Ubuntu 22.04, pre-packaged with popular machine learning frameworks.                   |
+| RDS Custom         | /aws/service/rds/optimized-ami/oracle-ee/19.21.0.0.ru-2023-10.rur-2023-10.r1/x86_64/1 | Stores the AMI ID for a specific version of Amazon RDS Custom for Oracle Enterprise Edition, ensuring a compatible OS environment. |
+
+
+#### 🗄️Secrets Manager
+
+{{< figure src="images/uploads/aws-ssm-secrets-manager.png" width="200" height="300" class="alignright">}}
+
+* Meant for storing secrets (e.g., passwords, API keys)
+* Capability to **force rotation** of secrets every X days
+  * Automate generation of secrets on rotation (uses ```Lambda```)
+  * Natively supports Amazon ```RDS``` (all supported DB engines), Redshift, DocumentDB
+  * Support other databases and services (custom Lambda function)
+* Control access to secrets using ```Resource-based``` Policy
+* Integration with other AWS services to natively, pull secrets from ```Secrets Manager```: CloudFormation, CodeBuild, ECS, EMR, Fargate, EKS, Parameter Store…
+
+###### Secrets Manager – with CloudFormation
+![SSM-Secrets-Manager](/images/uploads/aws-ssm-secrets-manager-cloudformation.png)
+
+###### Secrets Manager – Cross Account
+
+1. Account B must be allowed to ```decrypt``` the secret in Account A. 
+
+    KMS ```Key Policy``` in Account A:
+
+    ```json
+    {
+      "Sid": "AllowAccountBToDecrypt",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::<AccountB-ID>:role/<RoleName>"
+      },
+      "Action": [
+        "kms:Decrypt",
+        "kms:DescribeKey"
+      ],
+      "Resource": "*"
+    }
+    ```
+2. Attach a ```Resource-Based``` Policy to the Secret:
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "AllowAccountBToAccessSecret",
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "arn:aws:iam::<AccountB-ID>:root"
+          },
+          "Action": [
+            "secretsmanager:GetSecretValue",
+            "secretsmanager:DescribeSecret"
+          ],
+          "Resource": "*"
+        }
+      ]
+    }
+    ```
+    ![SSM-Secrets-Manager-Cross-Account](/images/uploads/aws-ssm-secrets-manager-cross-account.png)
+
+#### 🆚Secrets Manager vs. SSM ParameterStore
+
+{{< tabs name="Secrets Manager vs SSM ParameterStore" >}}
+{{% tab name="Secrets Manager" %}}
+* Automatic rotation of secrets with AWS Lambda
+* Integration with RDS, Redshift, DocumentDB
+* KMS encryption is mandatory
+* Can integration with CloudFormation
+{{% /tab %}}
+{{% tab name="SSM ParameterStore ($)" %}}
+* Simple API
+* No secret rotation
+* KMS encryption is optional
+* Can integration with CloudFormation
+* Can pull a Secrets Manager secret using the SSM Parameter Store API
+{{% /tab %}}
+{{< /tabs >}}
+
 ## 🧬Layer 6: Presentation
 
-## 🗪 Layer 5: Session
-
-## 🚦Layer 4: Transport
-
-## 🌐Layer 3: Network
-
-## 🔢Layer 2: Data Link
-
-## 🏢Layer 1: Physical
-
-## 🔐Encryption
+#### 🔐Encryption
 
 Encryption is a critical component of a defense-in-depth strategy, which is a security approach adopted by AWS with a series of defensive mechanisms designed so that if one security mechanism fails, there’s at least one more still operating.
 
 There are 2 forms of encryption in practice:
 
-#### Encryption in transit🚙:
+##### Encryption in transit🚙:
 
 * Data is encrypted before sending and decrypted after receiving
 * SSL certificates help with encryption (HTTPS)
@@ -50,7 +221,7 @@ There are 2 forms of encryption in practice:
 
 ![HTTPS](/images/uploads/encryption-in-transit.PNG)
 
-#### Encryption at Rest💤:
+##### Encryption at Rest💤:
 
 * Data is encrypted after being received by the server
 * Data is decrypted before being sent
@@ -70,7 +241,7 @@ There are 2 forms of encryption in practice:
 
   ![Server-Side](/images/uploads/encryption-at-rest-server.PNG)
 
-## 🗝️KMS
+#### 🗝️KMS
 
 AWS Key Management Store (```KMS```) is a managed service that enables you to easily **encrypt** your data.
 AWS KMS provides a highly available key storage, management, and auditing solution for you to encrypt data within your own applications and control the encryption of stored data across AWS services.
@@ -537,139 +708,11 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
     3. For subsequent object uploads, S3 uses this cached bucket key to generate per-object data keys, without calling KMS again.
     4. The object is encrypted using the derived data key, and the metadata includes the encrypted bucket key.
 
-## 🔗SSM ParameterStore
+## 🗪 Layer 5: Session
 
-{{< figure src="images/uploads/ssm-parameter-store.PNG" width="300" height="500" class="alignright">}}
+## 🚦Layer 4: Transport
 
-* Secure storage for configuration and secrets
-* Optional Seamless Encryption using KMS
-* ```Serverless```, scalable, durable, easy SDK
-* Version tracking of configurations / secrets
-* Configuration management using path & ```IAM```
-* Notifications with Amazon ```EventBridge```
-* Integration with ```CloudFormation```
-* SSM Parameter Store Hierarchy
-
-  * /my-department/
-    * my-app/
-      * dev/
-        * db-url
-        * db-password
-      * prod/
-        * db-url
-        * db-password
-    * other-app/
-  * /other-department/
-* **Standard** and **Advanced** parameter tiers
-
-  | **Characteristics**                                             | **Standard** | **Advanced**                              |
-  |-----------------------------------------------------------------|--------------|-------------------------------------------|
-  | Total number of parameters allowed (per AWS account and Region) | 10,000       | 100,000                                   |
-  | Maximum size of a parameter value                               | 4 KB         | 8 KB                                      |
-  | Parameter policies available                                    | No           | Yes                                       |
-  | Cost                                                            | Free         | $0.05 per advanced parameter per month    |
-
-* Here's some examples of SSM **Advanced** Parameter Polcies
-  ![SSM-Policies](/images/uploads/aws-kms-ssm-policies.png)
-
-###### SSM Public Parameters
-
-SSM public parameters are **read-only**, globally available parameters published by AWS under the ```/aws/service/``` namespace. They’re designed to:
-- ✅ Avoid hardcoding resource IDs (e.g., AMI IDs)
-- 🔄 Auto-update when AWS releases new versions
-- 🌍 Support multi-region deployments seamlessly
-- 🔐 Enable secure referencing of secrets via SSM syntax
-They’re especially useful in CloudFormation, CDK, Terraform, and CI/CD pipelines where you want modular, future-proof infrastructure.
-
-- Here's a list of common examples:
-
-| Parameter Category | Example Full Parameter Path                                                           | Usage / Description                                                                                                                |
-|--------------------|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
-| Amazon Linux       | /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2                         | Retrieves the AMI ID for the latest Amazon Linux 2 with HVM virtualization for an x86_64 architecture using a GP2 root volume.     |
-| Windows Server     | /aws/service/ami-windows-latest/Windows_Server-2022-English-Full-Base                 | Gets the AMI ID for the base image of Microsoft Windows Server 2022 (English, Full installation).                                  |
-| ECS-Optimized      | /aws/service/ecs/optimized-ami/amazon-linux-2/recommended                             | Fetches the recommended AMI ID for running Amazon ECS container instances on an Amazon Linux 2 base.                               |
-| EKS-Optimized      | /aws/service/eks/optimized-ami/1.30/amazon-linux-2/recommended                        | Provides the recommended AMI ID for an Amazon EKS worker node compatible with Kubernetes version 1.30 on Amazon Linux 2.           |
-| Deep Learning      | /aws/service/deep-learning-amis/latest/ubuntu-22.04                                   | Finds the latest Deep Learning AMI based on Ubuntu 22.04, pre-packaged with popular machine learning frameworks.                   |
-| RDS Custom         | /aws/service/rds/optimized-ami/oracle-ee/19.21.0.0.ru-2023-10.rur-2023-10.r1/x86_64/1 | Stores the AMI ID for a specific version of Amazon RDS Custom for Oracle Enterprise Edition, ensuring a compatible OS environment. |
-
-
-## 🗄️Secrets Manager
-
-{{< figure src="images/uploads/aws-ssm-secrets-manager.png" width="200" height="300" class="alignright">}}
-
-* Meant for storing secrets (e.g., passwords, API keys)
-* Capability to **force rotation** of secrets every X days
-  * Automate generation of secrets on rotation (uses ```Lambda```)
-  * Natively supports Amazon ```RDS``` (all supported DB engines), Redshift, DocumentDB
-  * Support other databases and services (custom Lambda function)
-* Control access to secrets using ```Resource-based``` Policy
-* Integration with other AWS services to natively, pull secrets from ```Secrets Manager```: CloudFormation, CodeBuild, ECS, EMR, Fargate, EKS, Parameter Store…
-
-###### Secrets Manager – with CloudFormation
-![SSM-Secrets-Manager](/images/uploads/aws-ssm-secrets-manager-cloudformation.png)
-
-###### Secrets Manager – Cross Account
-
-1. Account B must be allowed to ```decrypt``` the secret in Account A. 
-
-    KMS ```Key Policy``` in Account A:
-
-    ```json
-    {
-      "Sid": "AllowAccountBToDecrypt",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::<AccountB-ID>:role/<RoleName>"
-      },
-      "Action": [
-        "kms:Decrypt",
-        "kms:DescribeKey"
-      ],
-      "Resource": "*"
-    }
-    ```
-2. Attach a ```Resource-Based``` Policy to the Secret:
-
-    ```json
-    {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Sid": "AllowAccountBToAccessSecret",
-          "Effect": "Allow",
-          "Principal": {
-            "AWS": "arn:aws:iam::<AccountB-ID>:root"
-          },
-          "Action": [
-            "secretsmanager:GetSecretValue",
-            "secretsmanager:DescribeSecret"
-          ],
-          "Resource": "*"
-        }
-      ]
-    }
-    ```
-    ![SSM-Secrets-Manager-Cross-Account](/images/uploads/aws-ssm-secrets-manager-cross-account.png)
-
-## 🆚Secrets Manager vs. SSM ParameterStore
-
-{{< tabs name="Secrets Manager vs SSM ParameterStore" >}}
-{{% tab name="Secrets Manager" %}}
-* Automatic rotation of secrets with AWS Lambda
-* Integration with RDS, Redshift, DocumentDB
-* KMS encryption is mandatory
-* Can integration with CloudFormation
-{{% /tab %}}
-{{% tab name="SSM ParameterStore ($)" %}}
-* Simple API
-* No secret rotation
-* KMS encryption is optional
-* Can integration with CloudFormation
-* Can pull a Secrets Manager secret using the SSM Parameter Store API
-{{% /tab %}}
-{{< /tabs >}}
-
-## 🚨DDOS Attack
+#### 🚨DDOS Attack
 
 ![DDOS](/images/uploads/aws-ddos-attack.png)
 
@@ -683,17 +726,17 @@ They’re especially useful in CloudFormation, CDK, Terraform, and CI/CD pipelin
   * more complex, more specific (HTTP level)
   * Cache bursting strategies: overload the backend database by invalidating cache
 
-## 🛡️AWS Shield
+#### 🛡️AWS Shield
 
-## 🧱AWS WAF
+## 🌐Layer 3: Network
+
+## 🔢Layer 2: Data Link
+
+## 🏢Layer 1: Physical
 
 ## 🧑‍💻AWS Firewall Manager
 
 ## ⚙️AWS Config
-
-## 🕵️AWS Inspector
-
-## 💂AWS GuardDuty
 
 ## 📖Further Read
 
