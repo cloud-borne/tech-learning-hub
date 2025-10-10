@@ -402,4 +402,6 @@ With Lambda, you can use the language and IDE that you are most familiar with an
 
 ## 📖Further Read
 
+[Kubernetes to Serverless](https://aws.amazon.com/blogs/architecture/from-virtual-machine-to-kubernetes-to-serverless-how-dacadoo-saved-78-on-cloud-costs-and-automated-operations/)
+
 

@@ -16,7 +16,7 @@ Security Fundamentals in AWS
 
 ## 🔎Overview
 
-Security in AWS is a **layered** discipline - the [OSI Model](https://en.wikipedia.org/wiki/OSI_model) offers a clear way to think about where and how to apply security controls. 
+Security in AWS is a **layered** discipline - the [OSI Model](https://en.wikipedia.org/wiki/OSI_model) offers a clear way to think about where and how to apply security controls. Here's the 7 Layers and the respective AWS Services.
 
 ![OSI-Layers](/images/uploads/aws-osi-layers-security.png)
 
@@ -26,7 +26,7 @@ This cheatsheet maps the seven layers of the ```OSI model``` to AWS services tha
 
 ```Layer 7``` is where user-facing applications operate (e.g., **HTTP**, **HTTPS**, **DNS**, **SMTP**). Security at this layer is critical because it directly interacts with users and is often the most targeted by attackers.
 
-* ⚠️ Common Threats at ```Layer 7```
+⚠️ Common Threats at ```Layer 7```
 
 | 🚨 **Threat**               | 📝 **Description**                                                                 |
 |----------------------------|------------------------------------------------------------------------------------|
@@ -34,40 +34,47 @@ This cheatsheet maps the seven layers of the ```OSI model``` to AWS services tha
 | [Cross Site Scripting](https://owasp.org/www-community/attacks/xss/) | Injecting malicious scripts into web pages viewed by other users.              |
 | [Cross-Site Request Forgery(CSRF)](https://owasp.org/www-community/attacks/csrf) | Tricks users into executing unwanted actions on a web app.         |
 | [Code Injection](https://owasp.org/www-community/attacks/Code_Injection) | Exploiting vulnerabilities to run arbitrary code on the server.             |
-| **API Abuse**              | Excessive or malformed API calls to disrupt or exploit services.                  |
+| [API Abuse](https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/) | Excessive or malformed API calls to disrupt or exploit services.                  |
 | [DDOS](https://owasp.org/www-community/attacks/Denial_of_Service) | Flooding application endpoints with high-volume traffic.                          |
 | [Broken Authentication](https://owasp.org/www-project-top-ten/2017/A2_2017-Broken_Authentication)  | Exploiting weak session or credential handling mechanisms.                        |
-| [Sensitive Data Exposure](https://owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure) | Insecure transmission or storage of personal or confidential data.                |
+| [Sensitive Data Exposure](https://owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure) | Insecure transmission or storage of personal or confidential data.    
 
+#### 🚨DDOS Attack
+
+![DDOS](/images/uploads/aws-ddos-attack.png)
+
+* Distributed Denial of Service (```DDoS```):
+  * When your service is unavailable because it’s receiving too many requests (```Layer-4``` attacks)
+    * ```SYN Flood```: send too many TCP connection requests
+    * ```UDP Reflection```: get other servers to send many big UDP requests
+    * ```DNS flood``` attack: overwhelm the DNS so legitimate users can’t find the site
+    * ```Slow Loris``` attack: a lot of HTTP connections are opened and maintained
+  * Application level attacks (```Layer-7``` attacks):
+    * Complex, Application Specific (spike in ```POST``` requests to ```/login```) 
+    * **Cache Bursting**💥: Overload the backend database by invalidating cache
 
 #### 🧱AWS WAF
 
 * Protects your web applications from common web exploits (```Layer 7```)
-* Deploy on Application Load Balancer (```ALB```) (localized rules)
-* Deploy on ```API Gateway``` (rules running at the **regional** or **edge-level**)
-* Deploy on ```CloudFront``` (rules **globally** on **edge-locations**)
-* Used to front other solutions: ```CLB```, ```EC2``` instances, custom origins, ```S3``` websites
-* Deploy on ```AppSync``` (protect your **GraphQL** APIs)
-* ```WAF``` is not for **DDoS** protection
+  * Deploy on Application Load Balancer (```ALB```) (localized rules)
+  * Deploy on ```API Gateway``` (rules running at the **regional** or **edge-level**)
+  * Deploy on ```CloudFront``` (rules **globally** on **edge-locations**)
+  * Used to front other solutions: ```CLB```, ```EC2``` instances, custom origins, ```S3``` websites
+  * Deploy on ```AppSync``` (protect your **GraphQL** APIs)
+* ```WAF``` is not **only** for ```DDoS``` protection
 * Define **Web ACL** (Web Access Control List):
+  * Rules can include IP addresses, HTTP headers, HTTP body, or URI strings
+  * Size constraints, Geo match
+  * Rate-based rules (to count occurrences of events)
+  * Rule Actions: **Count** | **Allow** | **Block** | **CAPTCHA Challenge**
+  * Library of over 190 ready-to-use **managed** rules
+  * **Baseline Rule Groups** – general protection from common threats ```AWSManagedRulesCommonRuleSet```, ```AWSManagedRulesAdminProtectionRuleSet```, …
+  * **Use-Case Specific Rule Groups** – protection for many AWS WAF use cases ```AWSManagedRulesSQLiRuleSet```, ```AWSManagedRulesWindowsRuleSet```,```AWSManagedRulesPHPRuleSet```, ```AWSManagedRulesWordPressRuleSet```, …
+  * **IP Reputation Rule Groups** – block requests based on source (e.g. malicious IPs ```AWSManagedRulesAmazonIpReputationList```, ```AWSManagedRulesAnonymousIpList```
+  * **Bot Control Managed Rule Group** – block and manage requests from bots ```AWSManagedRulesBotControlRuleSet```
 
-* Library of over 190 managed rules
-* Ready-to-use rules that are managed by AWS and AWS Marketplace Sellers
-  * **Baseline Rule Groups** – general protection from common threats
-  ```AWSManagedRulesCommonRuleSet```, ```AWSManagedRulesAdminProtectionRuleSet```, …
-  * **Use-case Specific Rule Groups** – protection for many AWS WAF use cases
-  ```AWSManagedRulesSQLiRuleSet```, ```AWSManagedRulesWindowsRuleSet```,
-```AWSManagedRulesPHPRuleSet```, ```AWSManagedRulesWordPressRuleSet```, …
-  * **IP Reputation Rule Groups** – block requests based on source (e.g., malicious
-IPs)
-  ```AWSManagedRulesAmazonIpReputationList```, ```AWSManagedRulesAnonymousIpList```
-  * **Bot Control Managed Rule Group **– block and manage requests from bots
-  ```AWSManagedRulesBotControlRuleSet```
-* Rules can include IP addresses, HTTP headers, HTTP body, or URI strings
-* Protects from common attack - [SQL injection](https://owasp.org/www-community/attacks/SQL_Injection) and [Cross-Site Scripting (XSS)](https://owasp.org/www-community/attacks/xss/)
-* Size constraints, Geo match
-* Rate-based rules (to count occurrences of events)
-* Rule Actions: **Count** | **Allow** | **Block** | **CAPTCHA Challenge**
+![WAF Security](/images/uploads/aws-waf-security-solution-architecture.png)
+
 
 #### 🕵️AWS Inspector
 
@@ -712,20 +719,6 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
 
 ## 🚦Layer 4: Transport
 
-#### 🚨DDOS Attack
-
-![DDOS](/images/uploads/aws-ddos-attack.png)
-
-* Distributed Denial of Service (```DDoS```):
-  * When your service is unavailable because it’s receiving too many requests
-  * ```SYN Flood``` (Layer 4): send too many TCP connection requests
-  * ```UDP Reflection``` (Layer 4): get other servers to send many big UDP requests
-  * ```DNS flood``` attack: overwhelm the DNS so legitimate users can’t find the site
-  * ```Slow Loris``` attack: a lot of HTTP connections are opened and maintained
-* Application level attacks:
-  * more complex, more specific (HTTP level)
-  * Cache bursting strategies: overload the backend database by invalidating cache
-
 #### 🛡️AWS Shield
 
 ## 🌐Layer 3: Network
@@ -743,3 +736,5 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
 - [How to use AWS KMS RSA keys for offline encryption](https://aws.amazon.com/blogs/security/how-to-use-aws-kms-rsa-keys-for-offline-encryption/)
 - [How to verify AWS KMS signatures in decoupled architectures at scale](https://aws.amazon.com/blogs/security/how-to-verify-aws-kms-signatures-in-decoupled-architectures-at-scale/)
 - [OSI Model Security with AWS Services](https://newmathdata.com/blog/osi-model-aws-security-defense-in-depth-guide/)
+- [AWS WAF to block DDOS Events](https://aws.amazon.com/blogs/architecture/how-scale-to-win-uses-aws-waf-to-block-ddos-events/)
+- [Security Automations for AWS WAF](https://docs.aws.amazon.com/solutions/latest/security-automations-for-aws-waf/solution-overview.html)
