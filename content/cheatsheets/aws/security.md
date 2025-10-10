@@ -24,7 +24,7 @@ This cheatsheet maps the seven layers of the ```OSI model``` to AWS services tha
 
 ## 📱Layer 7: Application
 
-```Layer 7``` is where user-facing applications operate (e.g., **HTTP**, **HTTPS**, **DNS**, **SMTP**). Security at this layer is critical because it directly interacts with users and is often the most targeted by attackers.
+```Layer-7``` is where user-facing applications operate (e.g., **HTTP**, **HTTPS**, **DNS**, **SMTP**). Security at this layer is critical because it directly interacts with users and is often the most targeted by attackers.
 
 ⚠️ Common Threats at ```Layer 7```
 
@@ -39,19 +39,18 @@ This cheatsheet maps the seven layers of the ```OSI model``` to AWS services tha
 | [Broken Authentication](https://owasp.org/www-project-top-ten/2017/A2_2017-Broken_Authentication)  | Exploiting weak session or credential handling mechanisms.                        |
 | [Sensitive Data Exposure](https://owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure) | Insecure transmission or storage of personal or confidential data.    
 
-#### 🚨DDOS Attack
+#### 🚨Distributed Denial of Service (DDOS Attack)
 
 ![DDOS](/images/uploads/aws-ddos-attack.png)
 
-* Distributed Denial of Service (```DDoS```):
-  * When your service is unavailable because it’s receiving too many requests (```Layer-4``` attacks)
-    * ```SYN Flood```: send too many TCP connection requests
-    * ```UDP Reflection```: get other servers to send many big UDP requests
-    * ```DNS flood``` attack: overwhelm the DNS so legitimate users can’t find the site
-    * ```Slow Loris``` attack: a lot of HTTP connections are opened and maintained
-  * Application level attacks (```Layer-7``` attacks):
-    * Complex, Application Specific (spike in ```POST``` requests to ```/login```) 
-    * **Cache Bursting**💥: Overload the backend database by invalidating cache
+* Service becomes unavailable because it’s receiving too many requests (```Layer-4``` attacks)
+  * ```SYN Flood```: send too many TCP connection requests
+  * ```UDP Reflection```: get other servers to send many big UDP requests
+  * ```DNS flood``` attack: overwhelm the DNS so legitimate users can’t find the site
+  * ```Slow Loris``` attack: a lot of HTTP connections are opened and maintained
+* Application level attacks (```Layer-7``` attacks):
+  * Complex, Application Specific (spike in ```POST``` requests to ```/login```) 
+  * **Cache Bursting**💥: Overload the backend database by invalidating cache
 
 #### 🧱AWS WAF
 
@@ -73,16 +72,72 @@ This cheatsheet maps the seven layers of the ```OSI model``` to AWS services tha
   * **IP Reputation Rule Groups** – block requests based on source (e.g. malicious IPs ```AWSManagedRulesAmazonIpReputationList```, ```AWSManagedRulesAnonymousIpList```
   * **Bot Control Managed Rule Group** – block and manage requests from bots ```AWSManagedRulesBotControlRuleSet```
 
+#### Solution Architecture - Enhance CloudFront Origin Security
+
 ![WAF Security](/images/uploads/aws-waf-security-solution-architecture.png)
 
+To ensure that only traffic routed through Amazon ```CloudFront``` reaches an Application Load Balancer (```ALB```) — and to block direct access from end-users — you can implement a layered security approach using AWS WAF and custom headers. 
+1. First, apply a ```WAF``` Web ACL at the CloudFront level to filter client requests. 
+2. Then, configure ```CloudFront``` to inject a custom HTTP header (e.g., ```X-Origin-Verify```) with a secret value into each request. 
+3. On the ```ALB```, set up a WAF rule that only allows traffic containing this header, effectively blocking direct access. 
+4. For enhanced security, automate header rotation using AWS ```Secrets Manager``` and a ```Lambda``` function to periodically update both the ```CloudFront``` **header** and the ```ALB``` WAF rule.
+
+#### Solution Architecture - Bad Bot Protection
+
+![WAF Bad Bot](/images/uploads/aws-badbot-log-parser-flow.png)
+
+This solution uses AWS ```WAF```, Amazon ```Kinesis Data Firehose```, Amazon ```S3```, and AWS ```Lambda``` to detect and block malicious bots automatically. 
+
+1. A hidden trap endpoint acts as a *honeypot* to catch bots scanning the site. 
+2. Incoming requests are inspected by AWS ```WAF```, which applies Bad Bot Protection rules and labels suspicious traffic. 
+3. Logs are streamed via ```Kinesis Data Firehose``` providing buffering, scaling, transformation(convert **JSON** to **Parquet**), and reliable delivery into Amazon S3. 
+4. An AWS Lambda function parses WAF logs from S3, filters entries with **bad-bot** labels or trap endpoint hits, and extracts the **Source IP**s. 
+5. These IPs are added then added back to a ```WAF``` IP set for automated blocking for a configurable duration. 
 
 #### 🕵️AWS Inspector
 
+{{< figure src="images/uploads/aws-inspector-security.png" width="300" height="500" class="alignright">}}
+
+Amazon ```Inspector``` adds another layer of defense by performing vulnerability scans on ```EC2``` instances, ```Containers```, and ```Lambda``` functions against a database of known **CVE**s
+
+- For ```EC2``` instances: 
+  * Leveraging the AWS System Manager(```SSM```) agent
+  * Analyze against unintended network accessibility
+  * Analyze the running OS against known vulnerabilities
+- For ```Container``` Images push to Amazon ```ECR```:
+  * Assessment of Container Images as they are pushed
+- For ```Lambda``` Functions:
+  * Identifies software vulnerabilities in function code and package dependencies
+  * Assessment of functions as they are deployed
+- Reporting & integration with AWS ```Security Hub```
+- Send findings to Amazon ```Event Bridge```
+
 #### 💂AWS GuardDuty
 
-#### 🔗SSM ParameterStore
+Amazon ```GuardDuty``` serves as a threat detection engine, continuously analyzing AWS account activity, ```VPC Flow logs```, and ```DNS``` queries for signs of compromised resources or malicious behavior.
 
-{{< figure src="images/uploads/ssm-parameter-store.PNG" width="300" height="500" class="alignright">}}
+![WAF GuardDuty](/images/uploads/aws-guardduty-security.png)
+
+* Intelligent Threat discovery to protect your AWS Account 
+* Uses **Machine Learning** algorithms, anomaly detection, 3rd party data
+* One click to enable (30 days trial), no need to install software
+* Input data includes:
+  * CloudTrail ```Events Logs``` – unusual API calls, unauthorized deployments
+  * CloudTrail ```Management Events``` – create VPC subnet, create trail, …
+  * CloudTrail S3 ```Data Events``` – get object, list objects, delete object, …
+  * ```VPC Flow Logs``` – unusual internal traffic, unusual IP address
+  * ```DNS Logs``` – compromised EC2 instances sending encoded data within DNS queries
+  * Optional Features – ```EKS``` Audit Logs, ```RDS``` & ```Aurora```, ```EBS```, ```Lambda```, ```S3``` Data Events…
+
+{{< figure src="images/uploads/aws-guardduty-organization-security.png" width="200" height="300" class="alignright">}}
+* Can setup ```EventBridge``` rules to be notified in case of findings
+* EventBridge rules can target AWS ```Lambda``` or ```SNS```
+* Can protect against **CryptoCurrency** attacks (has a dedicated *finding* for it)
+* AWS Organization member accounts can be designated to be a GuardDuty Delegated Administrator
+* Have full permissions to enable and manage GuardDuty for all accounts in the Organization
+* Can be done only using the Organization Management Account
+
+#### 🔗SSM ParameterStore
 
 * Secure storage for configuration and secrets
 * Optional Seamless Encryption using KMS
@@ -91,8 +146,8 @@ This cheatsheet maps the seven layers of the ```OSI model``` to AWS services tha
 * Configuration management using path & ```IAM```
 * Notifications with Amazon ```EventBridge```
 * Integration with ```CloudFormation```
-* SSM Parameter Store Hierarchy
-
+{{< figure src="images/uploads/ssm-parameter-store.PNG" width="250" height="300" class="alignright">}}
+* SSM Parameter Store Hierarchy:
   * /my-department/
     * my-app/
       * dev/
@@ -103,7 +158,8 @@ This cheatsheet maps the seven layers of the ```OSI model``` to AWS services tha
         * db-password
     * other-app/
   * /other-department/
-* **Standard** and **Advanced** parameter tiers
+
+* Two parameter tiers available: **Standard** Vs **Advanced** 
 
   | **Characteristics**                                             | **Standard** | **Advanced**                              |
   |-----------------------------------------------------------------|--------------|-------------------------------------------|
@@ -134,7 +190,6 @@ They’re especially useful in CloudFormation, CDK, Terraform, and CI/CD pipelin
 | EKS-Optimized      | /aws/service/eks/optimized-ami/1.30/amazon-linux-2/recommended                        | Provides the recommended AMI ID for an Amazon EKS worker node compatible with Kubernetes version 1.30 on Amazon Linux 2.           |
 | Deep Learning      | /aws/service/deep-learning-amis/latest/ubuntu-22.04                                   | Finds the latest Deep Learning AMI based on Ubuntu 22.04, pre-packaged with popular machine learning frameworks.                   |
 | RDS Custom         | /aws/service/rds/optimized-ami/oracle-ee/19.21.0.0.ru-2023-10.rur-2023-10.r1/x86_64/1 | Stores the AMI ID for a specific version of Amazon RDS Custom for Oracle Enterprise Edition, ensuring a compatible OS environment. |
-
 
 #### 🗄️Secrets Manager
 
@@ -214,17 +269,19 @@ They’re especially useful in CloudFormation, CDK, Terraform, and CI/CD pipelin
 
 ## 🧬Layer 6: Presentation
 
+The Presentation layer is responsible for translating, formatting, and securing data before it reaches the Application layer. In modern cloud environments, this often means ensuring data is **encrypted** both in transit🚇 and at rest💤 using trusted protocols and managed cryptographic services. Weaknesses at this layer can lead to data leakage, **man-in-the-middle** attacks, or violations of compliance requirements.
+
 #### 🔐Encryption
 
 Encryption is a critical component of a defense-in-depth strategy, which is a security approach adopted by AWS with a series of defensive mechanisms designed so that if one security mechanism fails, there’s at least one more still operating.
 
 There are 2 forms of encryption in practice:
 
-##### Encryption in transit🚙:
+##### Encryption in transit🚇:
 
 * Data is encrypted before sending and decrypted after receiving
 * SSL certificates help with encryption (HTTPS)
-* Encryption in flight ensures no MITM (man in the middle attack) can happen
+* Encryption in flight ensures no **MITM** can happen
 
 ![HTTPS](/images/uploads/encryption-in-transit.PNG)
 
@@ -233,20 +290,34 @@ There are 2 forms of encryption in practice:
 * Data is encrypted after being received by the server
 * Data is decrypted before being sent
 * It is stored in an encrypted form thanks to a key (usually a data key)
-* The encryption / decryption keys must be managed somewhere and the server must have access to it.
+* The encryption/decryption keys must be managed somewhere and the server must have access to it.
 * There are two main methods to encrypt data at rest:
 
-  * **Client-Side** Encryption: As the name implies this method encrypts your data at the client-side before it reaches backend servers or services. You have to supply encryption keys 🔑 to encrypt the data from the client-side. You can either manage these encryption keys by yourself or use AWS KMS(Key Management Service) to manage the encryption keys under your control.
-
+  * **Client-Side** Encryption: As the name implies this method encrypts your data at the client-side before it reaches backend servers or services. You have to supply encryption keys 🔑 to encrypt the data from the client-side. You can either manage these encryption keys yourself or use AWS ```KMS```(Key Management Service) to manage the encryption keys under your control.
   * AWS provides multiple client-side SDKs to make this process easy for you. E.g. AWS Encryption SDK, S3 Encryption Client, DynamoDB Encryption Client etc…
 
   ![Client-Side](/images/uploads/encryption-at-rest-client.PNG)
 
   * **Server-Side** Encryption: In Server-Side encryption, AWS encrypts the data on your behalf as soon as it is received by an AWS Service. Most of the AWS services support server-side encryption. E.g. S3, EBS, RDS, DynamoDB, Kinesis, etc…
 
-  * All these services are integrated with AWS KMS in order to encrypt the data.
+  * All these services are integrated with AWS ```KMS``` in order to encrypt the data.
 
   ![Server-Side](/images/uploads/encryption-at-rest-server.PNG)
+
+#### AWS Certificate Manager(ACM)
+
+{{< figure src="images/uploads/aws-acm-security.png" width="200" height="300" class="alignright">}}
+
+* To host public SSL certificates in AWS, you can:
+  * Buy your own and upload them using the CLI
+  * Have ```ACM``` provision and renew public SSL certificates for you (free of cost)
+* ```ACM``` loads SSL certificates on the following integrations:
+  * ```Load Balancers``` (including the ones created by EB)
+  * ```CloudFront``` distributions
+  * APIs on ```API Gateways```
+* ACM is a **regional** service
+  * To use with a global application (multiple ```ALB``` for example), you need to issue an SSL certificate in each region where you application is deployed. 
+  * You cannot copy certs across regions
 
 #### 🗝️KMS
 
@@ -717,17 +788,74 @@ KMS keys are generally scoped per **Region**. That means if you have to copy a K
 
 ## 🗪 Layer 5: Session
 
+The session layer manages the creation, maintenance, and termination of communication sessions between systems. In modern applications, these sessions often involve authenticated users, federated identities, or temporary roles. At this layer, threats like session hijacking, token replay, or unauthorized impersonation can compromise the integrity of secure interactions.
+
+#### AWS Cognito
+
+#### AWS STS
+
+#### Amazon API Gateway
+
+#### IAM Identity Center
+
 ## 🚦Layer 4: Transport
+
+The transport layer governs how data is transmitted between systems over protocols such as TCP and UDP. At this level, attackers often attempt to exploit open ports, overwhelm systems with malformed packets or connection floods, or entirely disrupt communication channels. Protecting this layer means controlling access to specific ports, managing protocol behavior, and filtering out malicious traffic early in the request flow.
 
 #### 🛡️AWS Shield
 
+AWS ```Shield``` provides automated, scalable, and **cost-protected** DDoS defense across network and application layers.
+
+* AWS ```Shield``` Standard:
+  * **Free** service that is activated for every AWS customer
+  * Provides protection from attacks such as SYN/UDP Floods, Reflection attacks and other ```Layer-3```/```Layer-4``` attacks
+* AWS ```Shield Advanced```: 
+  * Optional DDoS mitigation service (**$3,000**💰 per month per organization) 
+  * Protect against more sophisticated attack on Amazon EC2, Elastic Load Balancing (ELB), Amazon CloudFront, AWS Global Accelerator, Route 53
+  * 24/7 access to AWS DDoS response team (DRP)
+  * Protect against higher fees during usage spikes due to **DDoS**
+
+#### 🧑‍💻AWS Firewall Manager
+
+* Manage rules in all accounts of an AWS Organization
+* Security policy: common set of security rules
+* WAF rules (Application Load Balancer, API Gateways, CloudFront)
+* AWS Shield Advanced (ALB, CLB, NLB, Elastic IP, CloudFront)
+* Security Groups for EC2, Application Load Balancer and ENI resources in VPC
+* AWS Network Firewall (VPC Level)
+* Amazon Route 53 Resolver DNS Firewall
+* Policies are created at the region level
+* Rules are applied to new resources as they are created (good for 
+compliance) across all and future accounts in your Organization
+
+* ```WAF```, ```Shield``` and ```Firewall Manager``` are used together for comprehensive protection
+* Define your Web ACL rules in ```WAF```
+* For granular protection of your resources, ```WAF``` alone is the correct choice
+* If you want to use AWS WAF across accounts, accelerate WAF configuration, automate the 
+protection of new resources, use ```Firewall Manager``` with AWS ```WAF```
+* ```Shield Advanced``` adds additional features on top of AWS WAF, such as dedicated support 
+from the Shield Response Team (SRT) and advanced reporting.
+* If you’re prone to frequent DDoS attacks, consider purchasing Shield Advanced
+
 ## 🌐Layer 3: Network
+
+The network layer controls how data is routed between systems using IP addressing. It plays a central role in cloud security architecture, as it’s often the first line of defense against external threats. At this layer, attackers may attempt IP spoofing, network scanning, or distributed denial-of-service (DDoS) attacks to overwhelm resources or probe for vulnerable endpoints.
+
+#### Amazon Virtual Private Cloud (VPC)
+
+#### Network ACLs (NACL)
+
+#### Route Tables
+
+#### Internet Gateways
+
+#### NAT Gateways
+
+#### Route 53
 
 ## 🔢Layer 2: Data Link
 
 ## 🏢Layer 1: Physical
-
-## 🧑‍💻AWS Firewall Manager
 
 ## ⚙️AWS Config
 
