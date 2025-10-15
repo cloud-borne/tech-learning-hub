@@ -855,9 +855,31 @@ The network layer controls how data is routed between systems using IP addressin
 
 ## 🔢Layer 2: Data Link
 
+The ```Data Link``` Layer handles node-to-node communication using Ethernet frames, MAC addresses, and VLANs. In AWS, traditional ```Layer-2``` risks like **MAC spoofing**, **ARP poisoning**, and **VLAN hopping** are mitigated because ```Layer-2``` is fully abstracted from customers. Amazon ```VPC``` is designed to isolate network traffic at the virtualization layer, eliminating direct exposure to MAC addresses or switching infrastructure.
+
+**__Key AWS Controls:__**
+
+- No raw ```Layer 2``` exposure: Customers cannot send Ethernet frames directly.
+- VPC Isolation: Logical isolation prevents cross-tenant traffic.
+- Managed ARP & No Broadcast Domains: Eliminates ARP spoofing and floods.
+- ```Security Groups``` & ```NACLs```: Enforce traffic filtering at higher layers.
+
+**__Direct Connect & Layer 2:__**
+
+- Provides **dedicated physical connectivity** using Ethernet (```Layer-2```).
+- Supports **802.1Q VLAN** tagging and **Link Aggregation** (LAG).
+- AWS enforces **port-level security** and **MAC filtering** at Direct Connect locations.
+vant Resources
+
 ## 🏢Layer 1: Physical
 
-## ⚙️AWS Config
+The physical layer secures the most basic infrastructure — cabling, power, servers, and data center access. In AWS, this responsibility shifts from customers to AWS, which owns and operates global facilities.
+
+Threats include hardware tampering, rogue devices, signal interception, theft of media, and environmental risks like power loss or overheating. These bypass software defenses, making physical security the first line of protection.
+AWS prevents customer access and enforces strict controls validated by compliance reports via ```AWS Artifact``` (**SOC 2**, **ISO 27001**, **PCI DSS**). 
+![AWS-Artifact](/images/uploads/aws-artifact-security.png)
+
+While customers don’t manage hardware, monitoring tools like AWS ```CloudTrail``` and ```AWS Config``` help detect anomalies in workloads.
 
 ## 📖Further Read
 
