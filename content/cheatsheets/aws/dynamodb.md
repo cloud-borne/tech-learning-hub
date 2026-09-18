@@ -65,21 +65,27 @@ If any of the servers housing your data should suffer a failure, they are remove
 
 ## Consistency
 
-Consistency is the ability to read data with the understanding that all prior writes will be reflected in the results returned. Reads can be “strongly” consistent or “eventually” consistent.
+Consistency is the ability to read data with the understanding that all prior writes will be reflected in the results returned. Reads can be `strongly` consistent or `eventually` consistent.
+
+Suppose the client writes an update to Key1, and it is durably persisted. The copy in Availability Zone A is one of those written to immediately. The copy in Availability Zone B has not yet been replicated.
+![DynamoDB-Write](/images/uploads/DynamoDB-Write.png)
 
 * **Eventual Consistent**
 
   * Consistency across all the copies of the data across the AZs is usually reached within a second.
   Repeating a read after a short interval after being written or changed should return the updated data within a second.
+  The returned result may be the updated value “B”, or it may be the stale value “A”.
 
-  ![Eventually-Consistent](/images/uploads/Eventually-Consistent.JPG)
+  ![Eventually-Consistent](/images/uploads/Eventually-Consistent.png)
 
 * **Strongly Consistent**
 
   * The Strongly consistent read returns a result that reflects all writes that received a successful response prior to the read.
+  The client will always see the up-to-date value “B”. 
 
-  ![Strongly-Consistent](/images/uploads/Strongly-Consistent.JPG)
+  ![Strongly-Consistent](/images/uploads/Strongly-Consistent.png)
 
+It’s tempting to want to use strongly consistent reads all the time – but DynamoDB charges more for them because the work is concentrated on a smaller number of replicated copies.
 
 ## DynamoDB Access Control
 

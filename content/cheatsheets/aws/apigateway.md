@@ -13,32 +13,32 @@ Build, Deploy and Manage APIs
 
 <!--more-->
 
-## Overview
+## 🔎Overview
 
 Amazon API Gateway is a fully ```managed``` service that makes it easy for developers to publish, maintain, monitor and secure APIs at any scale. You can create an API that acts as a front door for applications to access data, business logic or functionality from your backend services such as applications running on EC2, code running on Lambda or any web application.
 
-## Features
+## ✨Features
 
-* Developer Features in Amazon API Gateway:
-  * Exposes HTTPS endpoints to define a RESTful API.
+Developer Features in Amazon API Gateway:
+  * Exposes HTTPS endpoints to define a ```RESTful``` API.
   * ```Serverless-ly``` connect to other AWS services like ```Lambda```,```DynamoDB```,```SQS``` and so on.
   * Maintain multiple **versions** of your API.
   * **Transform** or **validate** request/response data
   * Generate and export a fully working **SDK** of your API, which you can use in your own application code. This SDK feature supports several languages such as Java, Javascript, iOS, Ruby SDKs, and several other programming languages.
   * Import/Export to Swagger
 
-* Features for Managing API Access:
-  * Built-in, flexible **authorization** options using IAM roles, AWS Lambda authorizers, or Amazon Cognito.
+Features for Managing API Access:
+  * Built-in, flexible **authorization** options using ```IAM``` roles, ```AWS Lambda``` authorizers, or ```Amazon Cognito```.
   * Track and control **usage** by API key
   * **Throttle** requests to prevent attacks.
-  * Connect to Cloudwatch to log all requests for monitoring
-  * You can enable API **caching** in API Gateway. It allows you to cache your endpoints response. With caching enabled you can reduce the number of calls made to your end point and also improve the **latency** of requests to your API. So when you enable API caching for a ```stage``` API gateway caches a response from your end point for specified **TTL** time in seconds.
+  * Connect to ```Cloudwatch``` to log all requests for monitoring
+  * You can enable API **caching** in API Gateway. It allows you to cache your endpoints response. With caching enabled you can reduce the number of calls made to your end point and also improve the **latency** of requests to your API. So when you enable API caching for a stage ```APIGateway``` caches a response from your end point for specified **TTL** time in seconds.
 
-## Design Considerations
+## 🧩Design
 
 Before you start writing your APIs, you'll need to decide the type of endpoint that makes sense for the traffic and usage patterns you anticipate.
 
-### Edge-optimized Endpoint
+###### Edge-optimized Endpoint
 Designed to help you reduce client **latency** from ```anywhere```🌎 on the internet:
 
 * If you choose an **edge-optimized** endpoint, API Gateway will automatically configure a ```CloudFront``` distribution that’s fully managed to provide lower **latency** access to your API.
@@ -47,7 +47,7 @@ Designed to help you reduce client **latency** from ```anywhere```🌎 on the in
 
 ![APIGateway-EdgeOptimized](/images/uploads/APIGateway-EdgeOptimized.JPG)
 
-### Regional Endoint
+###### Regional Endoint
 
 ![APIGateway-RegionalEndpoint](/images/uploads/APIGateway-RegionalEndpoint.JPG)
 Designed to reduce **latency** when calls are made from the same ```region``` as the API:
@@ -56,7 +56,7 @@ Designed to reduce **latency** when calls are made from the same ```region``` as
 * This gives you lower latency for applications that are invoking your API from within the same AWS Region. For example, an API that is going to be accessed from EC2 instances within the same region.
 * This API endpoint also allows you the **flexibility** to deploy your own CloudFront distribution in front of API Gateway and control that distribution using your own settings for customized scenarios. An example of that might be to design for disaster recovery scenarios or implement load balancing in a very customized way.
 
-### Private Endpoint
+###### Private Endpoint
 Designed to expose APIs only inside your ```VPC```:
 
 * This endpoint type is still managed by API Gateway, but requests are only routable, and can only originate, from within a single ```VPC``` that you control.
@@ -64,14 +64,14 @@ Designed to expose APIs only inside your ```VPC```:
 * There are no data **transfer-out** charges for private APIs. However, AWS ```PrivateLink``` charges apply when using private APIs in API Gateway.
 ![APIGateway-PrivateEndpoint](/images/uploads/APIGateway-PrivateEndpoint.JPG)
 
-## Authorizers
+## 🎓Authorizers
 
 There are three main ways to **authorize** API calls to your API Gateway endpoints:
-* ```IAM``` and Signature version 4 (also known as Sig v4),
-* AWS ```Lambda Authorizers```,  
-* Amazon ```Cognito``` with Cognito user pools.
+* ```IAM``` and Signature version 4 (also known as Sig v4)
+* AWS ```Lambda Authorizers```
+* Amazon ```Cognito``` with Cognito user pools
 
-###### Authorization Option Comparison:
+###### Authorization Option Comparison
 
   Each of these have advantages that should be matched to both your application needs and your organizational standards.
 
@@ -126,7 +126,7 @@ There are three main ways to **authorize** API calls to your API Gateway endpoin
 
 ![APIGateway-CognitoAuthorizer](/images/uploads/APIGateway-CognitoAuthorizer.JPG)
 
-## IAM Permissions
+## 📜IAM Permissions
 
 There are two types of IAM permissions for APIs:
 ![APIGateway-IAMPermissions](/images/uploads/APIGateway-IAMPermissions.JPG)
@@ -151,30 +151,30 @@ There are two types of IAM permissions for APIs:
 
   Resource policy and authentication methods(IAM, LambdaAuthorizers, Cognito) work together to grant access to your APIs. Methods for securing your APIs work in **aggregate**.
 
-  ###### Example: Limiting Access by User
-  In this example, the resource policy allows a user from another AWS account  (account-id:user/George) to perform GET requests on the Pets resource of our API.
-  ![APIGateway-ResourcePolicy-User](/images/uploads/APIGateway-ResourcePolicy-User.JPG)
+###### Example: Limiting Access by User
+In this example, the resource policy allows a user from another AWS account  (account-id:user/George) to perform GET requests on the Pets resource of our API.
+![APIGateway-ResourcePolicy-User](/images/uploads/APIGateway-ResourcePolicy-User.JPG)
 
-  ###### Example: Limiting by IP Address
-  This resource policy denies any user with a source IP address in one of two specified ranges from accessing the API. This is done by specifying an effect of DENY and an IPAddress condition with an array of source IP addresses.
-  ![APIGateway-ResourcePolicy-IP](/images/uploads/APIGateway-ResourcePolicy-IP.JPG)
+###### Example: Limiting by IP Address
+This resource policy denies any user with a source IP address in one of two specified ranges from accessing the API. This is done by specifying an effect of DENY and an IPAddress condition with an array of source IP addresses.
+![APIGateway-ResourcePolicy-IP](/images/uploads/APIGateway-ResourcePolicy-IP.JPG)
 
-  ######  Example: Limiting by VPC
-  This resource policy denies anyone (indicated by the principal = *) coming from the VPC specified as the sourceVPC within the Condition.
-  ![APIGateway-ResourcePolicy-VPC](/images/uploads/APIGateway-ResourcePolicy-VPC.JPG)
+######  Example: Limiting by VPC
+This resource policy denies anyone (indicated by the principal = *) coming from the VPC specified as the sourceVPC within the Condition.
+![APIGateway-ResourcePolicy-VPC](/images/uploads/APIGateway-ResourcePolicy-VPC.JPG)
 
-## Build an API
+## 🛠️Build an API
 
 The basic steps for creating an API from the API Gateway console can be mapped directly to the breakdown of the invoke URL:
 
-### Create and name API
+###### Create and name API
 
 {{< figure src="images/uploads/apigateway-createapi.PNG" width="300" height="200" class="alignright">}}
 
 Choose the Create API option from the console. The other key selection you must make to save your API is the Endpoint type. When you save your API, AWS generates a unique ID for that API name, which becomes part of the hostname in the invoke URL.
 <br/><br/><br/><br/>
 
-### Add Resources
+##### Add Resources
 
 {{< figure src="images/uploads/apigateway-addresource.PNG" width="300" height="250" class="alignright">}}
 
@@ -182,14 +182,14 @@ Use the Actions/Create Resource option to create a resource.
 You can create parent-child relationships among your resources for an API, and you can specify path parameters using curly brackets.
 <br/><br/><br/><br/>
 
-### Configure Resource as Proxy
+###### Configure Resource as Proxy
 
 {{< figure src="images/uploads/apigateway-configure-resource.PNG" width="300" height="250" class="alignright">}}
 
 If you choose this option,  it will automatically create a special HTTP method called “Any.” A proxy resource is expressed by a special resource path parameter of {proxy+}, often referred to as a greedy path parameter. The + sign indicates whichever child resources are appended to it.
 <br/><br/><br/><br/>
 
-### Create Method
+###### Create Method
 
 {{< figure src="images/uploads/apigateway-createmethod.PNG" width="300" height="250" class="alignright">}}
 
@@ -198,13 +198,13 @@ Select Create Method from the Action menu, you’ll be prompted to choose an HTT
 Depending on the integration type you select, you’ll have to provide different details.
 <br/><br/><br/><br/>
 
-### Edit Method Details
+###### Edit Method Details
 
 {{< figure src="images/uploads/apigateway-editmethod.PNG" width="300" height="250" class="alignright">}}
 
 Once you’ve saved the details of the integration type, the console will display panels that let you add to your Request/Response details. When proxy is not configured, you’ll need to configure both the integration request and the integration response, and set up necessary data mappings between the method request/response and the integration request/response.
 
-### Test your API methods
+###### Test your API methods
 
 {{< figure src="images/uploads/apigateway-test.PNG" width="300" height="250" class="alignright">}}
 
@@ -212,12 +212,12 @@ When you select the test option, you’ll be prompted for any required values an
 <br/><br/><br/><br/>
 > Note: Testing a method with the API Gateway console is the same as calling the method outside of the API Gateway console. Changes can’t be undone - you are really executing the method.
 
-## Integration Types
+## ⫘Integration Types
 
 As part of creating the method you must choose an integration type.
 There are 5 possible options:
 
-### Lambda Functions
+###### Lambda Functions
   * When you are using API Gateway as the gateway to a **Lambda** function, you’ll use Lambda integration.
   * The **proxy** option is highly recommended for integration with a Lambda function. This will result in requests being proxied to Lambda with request details available to your function handler in the **event** parameter, supporting a streamlined integration setup.
   * When proxy is not configured, you’ll need to configure both the integration request and the integration response, and set up necessary data mappings between the method request/response and the integration request/response. If the proxy option is used, you don’t set the integration request or the integration response.
@@ -225,11 +225,11 @@ There are 5 possible options:
   * For integrations with Lambda functions, you will need to set an ```IAM``` role with required permissions for API Gateway to call the backend on your behalf.
 
 
-### HTTP EndPoints
+###### HTTP EndPoints
   *  HTTP integration endpoints make sense for public web applications where you want people to interact with the endpoint. This type of integration lets an API expose HTTP endpoints in the backend.
   * API Gateway passes the incoming request from the client to the HTTP endpoint, and passes the outgoing response from the HTTP endpoint to the client.
 
-### AWS Services
+###### AWS Services
   * AWS Service as an integration type lets an API expose **AWS service** actions -for example you might drop a message directly into an ```SQS``` queue.
 
 ###### Mapping Templates (AWS & HTTP Integration)
@@ -245,28 +245,28 @@ There are 5 possible options:
 
 For example, you might add query strings or custom header parameters to your methods, or update the integration request to map input data from the method request to the format required by the backend.
 
-### Mock
+###### Mock
   * API Gateway returns a response without sending the request to the backend.
   * This is a good idea for a Health check endpoint to test your API.
   * Any time you want a **hardcoded** response to your API call, use a ```MOCK``` integration.
 
-### VPC Link
+###### VPC Link
   * VPC Link allows you to expose VPC resources outside your VPC.
   * Take an endpoint on your EC2 instance that’s not public - API Gateway can’t access it unless you use the VPC link and you have to have a Network Load Balancer on your backend.
   * For an API developer, a VPC Link is functionally equivalent to an integration endpoint.
 
-## Deployment
+## ♾️Deployment
 
 When you are ready to make your API callable for your users, you need to deploy your API to a stage.
 
-### API Stages
+###### API Stages
 When you deploy your API, you deploy to a stage. A stage is a snapshot of the API and represents a unique identifier for a version of a deployed API. Stages allows you to have multiple versions and make it easy to roll back a version. A number of the critical design options are set per Stage like for eg. Caching, Throttling and
 Usage Plans
 
 At that point, a base URI is generated and displayed on the API stage editor. That base URI is called the Invoke URL, and it will look like this example.
 ![APIGateway-EndPointURL](/images/uploads/APIGateway-EndPointURL.JPG)
 
-### Use Stages to Differentiate your APIs
+###### Use Stages to Differentiate your APIs
 
 {{< figure src="images/uploads/APIGateway-Stages.JPG" width="200" height="200" class="alignright">}}
 
@@ -284,12 +284,12 @@ At that point, a base URI is generated and displayed on the API stage editor. Th
   * Point API Gateway stage variables at Lambda aliases
   ![APIGateway-StageVariables](/images/uploads/apigateway-stagevariables-2.PNG)
 
-### Customize the Hostname
+###### Customize the Hostname
 
 You can make the URL more meaningful to your users by using a custom domain name as the host and choosing a base path to map the alternative URL to your API.  You will need an SSL/TLS certificate for the domain name. API Gateway is integrated with Amazon Certificate Manager (ACM) and allows you to import your own certificate or generate an SSL certificate with ACM.
 ![APIGateway-CustomDomain](/images/uploads/APIGateway-CustomDomain.JPG)
 
-### Options Set per Stage
+###### Options Set per Stage
 
 A number of the critical design options are set per Stage:
 
@@ -299,7 +299,7 @@ A number of the critical design options are set per Stage:
 * Canary
 * Generate SDK
 
-### Throttling
+###### Throttling
 
 * Account Limit: API Gateway throttles requests at 10000 rps across all API. The maximum concurrent requests is 5000 requests across all APIs within an AWS account.
 * If you go over 10000 rps or 5000 concurrent requests you will receive a HTTP-429 Too Many Request error
@@ -313,7 +313,7 @@ A number of the critical design options are set per Stage:
 
 > Just like Lambda Concurrency, one API that is overloaded, if not limited, can cause the other APIs to be throttled
 
-### Usage Plans and API Key
+###### Usage Plans and API Key
 
 API keys and usage plans together let you create very specific plans that make sense for your business.
 This can be useful for things like preventing one consumer from using all of your backend system’s capacity or to ensure that your downstream systems can manage the number of requests you send through.
@@ -337,7 +337,7 @@ This can be useful for things like preventing one consumer from using all of you
     * Default per-method limits and individual per-method limits that you set in API stage settings.
     * The account level limit.
 
-### Caching
+###### Caching
 
 {{< figure src="images/uploads/apigateway-cache.PNG" width="300" height="250" class="alignright">}}
 
@@ -354,7 +354,7 @@ This can be useful for things like preventing one consumer from using all of you
 
 ![APIGateway-Cache-IAM](/images/uploads/apigateway-invalidate-cache.PNG)
 
-### Canary Deployments
+###### Canary Deployments
 
 **Canary** deployments allow you to send a percentage of traffic to your ```canary``` while leaving the bulk of your traffic on a known good version of your API until the new version has been verified.
 
@@ -364,12 +364,12 @@ To set up a canary deployment via the console, select a stage, and then select t
 
 ![APIGateway-Canary](/images/uploads/APIGateway-Canary.png)
 
-### Generate an SDK
+###### Generate an SDK
 
 At an API stage, you can also export the API definitions or generate an SDK for your users to call the API using a supported programming language.
 ![APIGateway-SDK](/images/uploads/apigateway-generate-sdk.PNG)
 
-## Enable CORS
+###### Enable CORS
 
 * CORS must be enabled when you receive API calls from another domain.
 * The OPTIONS pre-flight request must contain the following headers:
@@ -381,11 +381,11 @@ At an API stage, you can also export the API definitions or generate an SDK for 
 
 ![APIGateway-CORS](/images/uploads/apigateway-CORS.PNG)
 
-## Monitoring
+## 📈Monitoring
 
 With any enterprise-grade production application , you need to actively manage and understand metrics and logging associated with your APIS.
 
-### CloudWatch Metrics
+###### CloudWatch Metrics
 
 API Gateway has seven metrics out of the box, and they're all free at the stage level. While these are free at the stage level, consider the value of enabling detailed metrics so you can see these metrics at the method level.
 This is where you would be able to see details about gets vs. posts vs. deletes etc. You can enable detailed metrics from the Stage settings.
@@ -406,7 +406,7 @@ This is where you would be able to see details about gets vs. posts vs. deletes 
   * 503: Service Unavailable Exception
   * 504: Integration Failure – ex Endpoint Request Timed-out Exception API Gateway requests time out after 29 second maximum
 
-### CloudWatch Logs
+###### CloudWatch Logs
 
 In addition to CloudWatch Metrics, you can also learn a lot from CloudWatch Logs about how your APIs are performing. API Gateway has two types of CloudWatch logs built in.
 
@@ -421,14 +421,14 @@ In addition to CloudWatch Metrics, you can also learn a lot from CloudWatch Logs
     * Details about who accessed your API: IP, HttpMethod, User, Protocol, Time
     * Customizable format for machine parsable logs
 
-### X-Ray
+###### X-Ray
 
 AWS X-Ray gives you an end-to-end view of an entire request, so you can analyze latencies in your APIs and their backend services.
 
   * Analyze latencies in your APIs and their backend services
   * Configure sampling rules to focus on specific requests
 
-### CloudTrail
+###### CloudTrail
 
 AWS CloudTrail captures all API calls for API Gateway as events, including calls from the API Gateway console and from code calls to the API Gateway APIs.
 

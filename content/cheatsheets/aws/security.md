@@ -839,19 +839,27 @@ from the Shield Response Team (SRT) and advanced reporting.
 
 ## 🌐Layer 3: Network
 
-The network layer controls how data is routed between systems using IP addressing. It plays a central role in cloud security architecture, as it’s often the first line of defense against external threats. At this layer, attackers may attempt IP spoofing, network scanning, or distributed denial-of-service (DDoS) attacks to overwhelm resources or probe for vulnerable endpoints.
+The network layer controls how data is routed between systems using IP addressing. It plays a central role in cloud security architecture, as it’s often the first line of defense against external threats. At this layer, attackers may attempt [IP spoofing](https://owasp.org/www-community/pages/attacks/ip_spoofing_via_http_headers) and [Distributed denial-of-service (DDoS)](https://owasp.org/www-community/attacks/Denial_of_Service) attacks to overwhelm resources or probe for vulnerable endpoints.
 
 #### Amazon Virtual Private Cloud (VPC)
 
+```VPC``` is your private network space in AWS. It gives you full control over IP addressing, subnetting, and routing. From a security standpoint, it’s the foundational, you isolate workloads, define access boundaries, and segment environments (e.g., ```prod``` vs ```dev```). Think of it as your digital fortress🏰
+
 #### Network ACLs (NACL)
+
+```NACLs``` act as **stateless** firewalls at the ```subnet``` level. They inspect traffic entering and leaving subnets, applying rules to **ALLOW** or **DENY** based on IP, port, and protocol. Since they’re stateless, both **inbound** and **outbound** rules must be defined. They’re great for broad perimeter filtering and protecting against unwanted traffic. 
 
 #### Route Tables
 
-#### Internet Gateways
+```Route Tables``` determine how traffic flows within your VPC. While not a security tool per se, they’re critical for controlling exposure, for example, ensuring **private** subnets don’t route traffic to the internet. Misconfigured routes can lead to data leaks or unintended access paths.
 
 #### NAT Gateways
 
+```NAT Gateways``` allow instances in **private** subnets to initiate outbound connections to the internet (e.g., for updates) without exposing them to inbound traffic. This is a key security control, you get internet access without compromising internal resource visibility.
+
 #### Route 53
+
+```Route 53``` is AWS’s DNS service. It supports private ```hosted zones```, which are essential for internal name resolution without exposing DNS records publicly. It also offers DNS failover and health checks, helping maintain availability and resilience against attacks like DNS spoofing. 
 
 ## 🔢Layer 2: Data Link
 
@@ -880,6 +888,46 @@ AWS prevents customer access and enforces strict controls validated by complianc
 ![AWS-Artifact](/images/uploads/aws-artifact-security.png)
 
 While customers don’t manage hardware, monitoring tools like AWS ```CloudTrail``` and ```AWS Config``` help detect anomalies in workloads.
+
+```mermaid
+graph TD
+    subgraph Synchronous Vendor Request Flow (3 Hops)
+        V[Vendor] -- 1. Request Claim Data (GET /claims/{id}) --> AGG[Aggregator API]
+        AGG -- 2. Orchestrates & Shapes (GET /canonical/claims/{id}) --> CAG[Canonical Gateway API]
+        CAG -- 3. Transforms & Invokes (GET /claims/{id}, /policy) --> GW[Guidewire Insurance Suite (Monolith)]
+        GW -- 4. Returns Raw Data --> CAG
+        CAG -- 5. Returns Transformed Data --> AGG
+        AGG -- 6. Returns Shaped Data --> V
+    end
+
+    subgraph Asynchronous Data Flow (for AI/ML)
+        CAG -- A. Publishes Canonical Model (Non-blocking) --> MQ[(Message Queue)]
+        MQ -- B. Consumes Canonical Events --> CDS[Canonical DB Sync Service]
+        CDS -- C. Persists Canonical Model --> CDB[Canonical Database (Read-Optimized)]
+        CDB -- D. Reads Canonical Data for Training/Inference --> AIML[AI/ML Services]
+    end
+
+    style V fill:#f9f,stroke:#333,stroke-width:2px
+    style AGG fill:#bbf,stroke:#333,stroke-width:2px
+    style CAG fill:#bfb,stroke:#333,stroke-width:2px
+    style GW fill:#fbb,stroke:#333,stroke-width:2px
+    style MQ fill:#fcb,stroke:#333,stroke-width:2px
+    style CDS fill:#ccf,stroke:#333,stroke-width:2px
+    style CDB fill:#ffc,stroke:#333,stroke-width:2px
+    style AIML fill:#fdb,stroke:#333,stroke-width:2px
+
+    linkStyle 0 stroke:#0066cc,stroke-width:2px,fill:none;
+    linkStyle 1 stroke:#0066cc,stroke-width:2px,fill:none;
+    linkStyle 2 stroke:#0066cc,stroke-width:2px,fill:none;
+    linkStyle 3 stroke:#0066cc,stroke-width:2px,fill:none;
+    linkStyle 4 stroke:#0066cc,stroke-width:2px,fill:none;
+    linkStyle 5 stroke:#0066cc,stroke-width:2px,fill:none;
+
+    linkStyle 6 stroke:#663399,stroke-width:2px,fill:none,stroke-dasharray: 5 5;
+    linkStyle 7 stroke:#663399,stroke-width:2px,fill:none,stroke-dasharray: 5 5;
+    linkStyle 8 stroke:#663399,stroke-width:2px,fill:none,stroke-dasharray: 5 5;
+    linkStyle 9 stroke:#663399,stroke-width:2px,fill:none,stroke-dasharray: 5 5;  
+```
 
 ## 📖Further Read
 
