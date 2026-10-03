@@ -66,14 +66,12 @@ sequenceDiagram
 
     Note over Pod, IAM: 2. Authentication Flow
     Pod->>Pod: Kafka Client triggers aws-msk-iam-auth library
-    Pod->>STS: POST AssumeRoleWithWebIdentity
-(Includes JWT Token & Role ARN)
+    Pod->>STS: POST AssumeRoleWithWebIdentity (Includes JWT Token and Role ARN)
 
     STS->>IAM: Validate JWT Signature & Trust Policy
     IAM-->>STS: Validation Successful (OIDC Match, sub/aud match)
 
-    STS-->>Pod: Returns Temporary AWS Credentials
-(AccessKeyId, SecretAccessKey, SessionToken)
+    STS-->>Pod: Returns Temporary AWS Credentials (AccessKeyId, SecretAccessKey, SessionToken)
 
     Note over Pod, MSK: 3. Resource Access
     Pod->>Pod: SDK generates SigV4 Signature using temporary credentials
